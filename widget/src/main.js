@@ -1,7 +1,9 @@
 import './style.css';
 
 // Determine API base URL dynamically based on where the widget script is loaded from
-const scriptSrc = document.currentScript ? document.currentScript.src : window.location.origin;
+// document.currentScript is null for type="module", so we fallback to querying the script tag
+const scriptElement = document.currentScript || document.querySelector('script[src*="widget.js"]');
+const scriptSrc = scriptElement ? scriptElement.src : window.location.origin;
 const API_BASE = new URL(scriptSrc).origin + '/api';
 
 class AdaptIQWidget {
