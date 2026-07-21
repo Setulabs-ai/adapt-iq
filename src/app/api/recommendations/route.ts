@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase, mockProducts, mockRecommendations } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -25,11 +25,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ title: "Precision Recommendations", products: [] });
   }
 
-  // Find product's recommended IDs
-  const recIds = productId ? (mockRecommendations[productId] || []) : [];
-  
-  // Hydrate full products
-  const recommendations = recIds.map(id => mockProducts.find(p => p.id === id)).filter(Boolean);
+  // Fetch catalog from Supabase
+  const { data: dbProducts, error: dbError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('store_id', storeId);
+
+  if (dbError || !dbProducts || dbProducts.length === 0) {
+    return NextResponse.json({ title: "Precision Recommendations", products: [] });
+  }
+
+  // Filter out current product and grab up to 2 items (Mocking real ML logic for Phase 11)
+  const recommendations = dbProducts
+    .filter(p => p.id !== productId)
+    .slice(0, 2);
 
   return NextResponse.json({
     title: "Precision Recommendations",

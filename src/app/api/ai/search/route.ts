@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { supabase, mockProducts } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 const part1 = "sk-proj-spqRrHZkkgs87L_wQf-qlF-rTnWBqWi8qi6jK6vyI0Kh";
 const part2 = "VQc2jrx04r_nTRXZGagsVV9VtwGd_AT3BlbkFJ0Dl1EBceGkFG3dzS9KlxCgRkcz1SeuOYxGTRMF4VtM5MXsB6TGIYPjhkfE967AsJ9YAPHHnZEA";
@@ -33,8 +33,18 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 2. Ask OpenAI to perform semantic search across our catalog
-    const catalog = Object.values(mockProducts).map(p => ({ id: p.id, name: p.name }));
+    // 2. Fetch entire catalog for this store from Supabase
+    const { data: dbProducts, error: dbError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('store_id', storeId);
+
+    if (dbError || !dbProducts || dbProducts.length === 0) {
+      return NextResponse.json({ error: "Store catalog is empty or unreachable" }, { status: 404 });
+    }
+
+    // 3. Ask OpenAI to perform semantic search across our catalog
+    const catalog = dbProducts.map(p => ({ id: p.id, name: p.name, tags: p.tags }));
 
     const prompt = `
       You are an AI Search Engine for an e-commerce store.
@@ -61,9 +71,9 @@ export async function GET(request: Request) {
       console.error("OpenAI returned invalid JSON:", responseText);
     }
 
-    // 3. Map IDs back to full product objects
+    // 4. Map IDs back to full product objects
     const matchedProducts = matchedIds
-      .map((id: string) => mockProducts.find(p => p.id === id))
+      .map((id: string) => dbProducts.find(p => p.id === id))
       .filter(Boolean);
 
     return NextResponse.json({

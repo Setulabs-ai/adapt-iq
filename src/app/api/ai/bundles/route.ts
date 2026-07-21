@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { supabase, mockProducts } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 const part1 = "sk-proj-spqRrHZkkgs87L_wQf-qlF-rTnWBqWi8qi6jK6vyI0Kh";
 const part2 = "VQc2jrx04r_nTRXZGagsVV9VtwGd_AT3BlbkFJ0Dl1EBceGkFG3dzS9KlxCgRkcz1SeuOYxGTRMF4VtM5MXsB6TGIYPjhkfE967AsJ9YAPHHnZEA";
@@ -32,17 +32,27 @@ export async function GET(request: Request) {
     return NextResponse.json({ title: "Frequently Bought Together", products: [] });
   }
 
-  // 2. Identify current product
-  const currentProduct = Object.values(mockProducts).find(p => p.id === productId);
+  // 2. Fetch entire catalog for this store from Supabase
+  const { data: dbProducts, error: dbError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('store_id', storeId);
+
+  if (dbError || !dbProducts || dbProducts.length === 0) {
+    return NextResponse.json({ error: "Store catalog is empty or unreachable" }, { status: 404 });
+  }
+
+  // 3. Identify current product
+  const currentProduct = dbProducts.find(p => p.id === productId);
   if (!currentProduct) {
     return NextResponse.json({ error: "Product not found in catalog" }, { status: 404 });
   }
 
   try {
-    // 3. Ask OpenAI to generate a bundle based on our catalog
-    const catalog = Object.values(mockProducts)
+    // 4. Ask OpenAI to generate a bundle based on our catalog
+    const catalog = dbProducts
       .filter(p => p.id !== productId)
-      .map(p => ({ id: p.id, name: p.name, price: p.price }));
+      .map(p => ({ id: p.id, name: p.name, price: p.price, tags: p.tags }));
 
     const prompt = `
       You are an expert e-commerce merchandiser. 
@@ -69,9 +79,9 @@ export async function GET(request: Request) {
       console.error("OpenAI returned invalid JSON:", responseText);
     }
 
-    // 4. Map IDs back to full product objects
+    // 5. Map IDs back to full product objects
     const bundledProducts = bundledIds
-      .map((id: string) => mockProducts.find(p => p.id === id))
+      .map((id: string) => dbProducts.find(p => p.id === id))
       .filter(Boolean);
 
     return NextResponse.json({
