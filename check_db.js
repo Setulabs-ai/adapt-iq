@@ -6,8 +6,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-async function check() {
-  const { data, error } = await supabase.from('store_configs').select('*');
-  console.log(data, error);
+async function testUpsert() {
+  const dummyProduct = {
+    id: "test_product_999",
+    store_id: "adaptiq-demo-store",
+    name: "Test Product",
+    price: "$9.99",
+    image: null,
+    description: "test",
+    tags: ["test", "dummy"]
+  };
+  
+  const { data, error } = await supabase.from('products').upsert([dummyProduct], { onConflict: 'id,store_id' });
+  console.log("Upsert Error:", error);
+  console.log("Upsert Data:", data);
 }
-check();
+testUpsert();

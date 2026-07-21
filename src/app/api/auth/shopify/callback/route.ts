@@ -111,6 +111,7 @@ export async function GET(request: Request) {
       console.error("[Shopify Auth] ScriptTag injection error:", err);
     }
 
+    let debugInfo = { accessTokenPrefix: accessToken?.substring(0,4), productsSynced: 0, syncError: null as any };
     // --- BULK CATALOG SYNC & WEBHOOKS ---
     try {
       const productsResponse = await fetch(`https://${shop}/admin/api/2024-01/products.json?limit=250`, {
@@ -130,9 +131,16 @@ export async function GET(request: Request) {
         
         if (products.length > 0) {
           const { error: syncError } = await supabase.from('products').upsert(products, { onConflict: 'id,store_id' });
-          if (syncError) console.error("[Shopify Auth] Bulk sync error:", syncError);
-          else console.log(`[Shopify Auth] Synced ${products.length} products for ${storeId}`);
+          if (syncError) { 
+            console.error("[Shopify Auth] Bulk sync error:", syncError);
+            debugInfo.syncError = syncError;
+          } else {
+            console.log(`[Shopify Auth] Synced ${products.length} products for ${storeId}`);
+            debugInfo.productsSynced = products.length;
+          }
         }
+      } else {
+        debugInfo.syncError = "Shopify API returned " + productsResponse.status;
       }
       
       // Register Webhook for future updates
@@ -172,6 +180,7 @@ export async function GET(request: Request) {
     path: '/'
   });
 
-  // Redirect the merchant to the App Dashboard
-  return NextResponse.redirect(`${appHost}/dashboard`);
+  // Redirect the merchant to the App Dashboard (Commented out for debug)
+  // return NextResponse.redirect(`${appHost}/dashboard`);
+  return NextResponse.json({ success: true, debugInfo, storeId });
 }
