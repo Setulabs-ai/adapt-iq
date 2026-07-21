@@ -116,7 +116,7 @@ export async function GET(request: Request) {
 
     // --- BULK CATALOG SYNC & WEBHOOKS ---
     try {
-      const productsResponse = await fetch(`https://${shop}/admin/api/2026-04/products.json?limit=250`, {
+      const productsResponse = await fetch(`https://${shop}/admin/api/2026-04/products.json?limit=250&status=active`, {
         headers: { 'X-Shopify-Access-Token': accessToken }
       });
       if (productsResponse.ok) {

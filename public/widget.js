@@ -343,6 +343,16 @@
             <div class="adaptiq-powered-by">Powered by AdaptIQ</div>
           </div>
         `;
+        e.querySelectorAll(`.adaptiq-product-card`).forEach(card => {
+          card.addEventListener(`click`, (ev) => {
+            if (ev.target.tagName.toLowerCase() === 'button') return;
+            this.trackEvent(`bundle_click`, { clickedProductId: card.dataset.id, sourceProductId: this.currentProductId });
+            if (card.dataset.handle) {
+              window.location.href = '/products/' + card.dataset.handle;
+            }
+          });
+        });
+
         e.querySelectorAll(`button`).forEach(btn => {
           btn.addEventListener(`click`, async ev => {
             ev.stopPropagation();
@@ -355,16 +365,19 @@
 
             if (card.dataset.variantId) {
               try {
-                await fetch('/cart/add.js', {
+                let res = await fetch('/cart/add.js', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ items: [{ id: card.dataset.variantId, quantity: 1 }] })
+                  body: JSON.stringify({ items: [{ id: parseInt(card.dataset.variantId, 10), quantity: 1 }] })
                 });
+                
+                if (!res.ok) throw new Error("Failed to add");
+
                 btn.innerText = "Added!";
                 btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
                 setTimeout(() => { window.location.href = '/cart'; }, 500);
               } catch (e) {
-                alert("Failed to add to cart");
+                alert("Sorry, this variant cannot be added to the cart right now.");
                 btn.innerText = originalText;
                 btn.style.opacity = 1;
               }

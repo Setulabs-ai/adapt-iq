@@ -6,12 +6,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-async function wipeData() {
+async function wipeProducts() {
   const storeId = "adaptiq-demo-store";
-  console.log(`Wiping analytics data for ${storeId}...`);
+  console.log(`Wiping products data for ${storeId}...`);
   
   const { data, error } = await supabase
-    .from('analytics')
+    .from('products')
     .delete()
     .eq('store_id', storeId)
     .select();
@@ -19,8 +19,8 @@ async function wipeData() {
   if (error) {
     console.error("Error wiping data:", error);
   } else {
-    console.log(`Data wiped successfully! Deleted ${data?.length || 0} rows. The dashboard should now be at 0.`);
+    console.log(`Products wiped successfully! Deleted ${data?.length || 0} rows.`);
   }
 }
 
-wipeData();
+wipeProducts();

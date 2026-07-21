@@ -33,10 +33,10 @@ export default function DashboardOverview() {
       </div>
 
       <div className={styles.statsGrid}>
-        <StatCard title="Widget Views" value={stats?.views?.toLocaleString() || "0"} icon={<Users size={20} />} trend="+12.5%" />
-        <StatCard title="Clicks Generated" value={stats?.clicks?.toLocaleString() || "0"} icon={<MousePointerClick size={20} />} trend="+5.2%" />
-        <StatCard title="Click-Through Rate" value={stats?.ctr || "0%"} icon={<TrendingUp size={20} />} trend="+1.1%" />
-        <StatCard title="Est. Revenue Lift" value={stats?.revenueLift || "$0"} icon={<DollarSign size={20} />} trend="+8.4%" highlight />
+        <StatCard title="Widget Views" value={stats?.views?.toLocaleString() || "0"} icon={<Users size={20} />} trend={stats?.trends?.views || "+0.0%"} />
+        <StatCard title="Clicks Generated" value={stats?.clicks?.toLocaleString() || "0"} icon={<MousePointerClick size={20} />} trend={stats?.trends?.clicks || "+0.0%"} />
+        <StatCard title="Click-Through Rate" value={stats?.ctr || "0%"} icon={<TrendingUp size={20} />} trend={stats?.trends?.ctr || "+0.0%"} />
+        <StatCard title="Est. Revenue Lift" value={stats?.revenueLift || "$0"} icon={<DollarSign size={20} />} trend={stats?.trends?.revenueLift || "+0.0%"} highlight />
       </div>
 
       <div className={styles.activityCard}>
