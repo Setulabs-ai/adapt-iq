@@ -1,0 +1,20 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "6efcfcda25ccd1452e7afddd5869bc11"
+name = "AdaptIQ"
+application_url = "https://adapt-iq-sable.vercel.app/"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_script_tags"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://adapt-iq-sable.vercel.app/api/auth/shopify/callback"
+]
+
+[webhooks]
+api_version = "2026-07"
