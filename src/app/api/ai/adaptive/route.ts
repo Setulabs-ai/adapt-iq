@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     // 2. Build the LLM Prompt
     const systemPrompt = `
-      You are an expert eCommerce conversion copywriter for a premium snowboard store named "${storeName}".
+      You are an expert eCommerce conversion copywriter for a premium clothing store named "${storeName}".
       Your job is to adapt the storefront's hero section dynamically based on the user's hidden context.
       
       User Context:
@@ -69,8 +69,8 @@ export async function POST(request: Request) {
     console.error("[Adaptive Storefront API] Error:", error);
     // Fallback if AI fails
     return NextResponse.json({
-      headline: "The Ultimate Winter Collection",
-      subtext: "Engineered for peak performance on the mountain.",
+      headline: "The Summer Collection",
+      subtext: "Elevate your everyday wardrobe.",
       primaryColor: "#7c6dfa"
     });
   }

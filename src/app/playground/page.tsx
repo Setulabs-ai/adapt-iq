@@ -150,7 +150,7 @@ export default function Playground() {
 
                 <div className={styles.productDisplay}>
                   <div className={styles.imageWrapper}>
-                    <img src="https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?q=80&w=400&auto=format&fit=crop" alt="Oxford Shirt" className={styles.productImage} style={{mixBlendMode: 'normal', borderRadius: '8px'}} />
+                    <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop" alt="Oxford Shirt" className={styles.productImage} style={{mixBlendMode: 'normal', borderRadius: '8px'}} />
                     <div className={styles.badges}>Best Seller</div>
                   </div>
                   

@@ -27,7 +27,7 @@ class AdaptIQWidget {
     
     // For the demo, we read product ID from Shopify's global meta variable first,
     // then fallback to our mock meta tag for local testing
-    let productId = '9336993317079'; // Default to Liquid snowboard if nothing found
+    let productId = 'clothing_101'; // Default to Oxford Shirt if nothing found
     
     if (window.meta && window.meta.product && window.meta.product.id) {
       productId = String(window.meta.product.id);
