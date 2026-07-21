@@ -95,18 +95,16 @@ export default function DashboardSettings() {
                 onChange={(v: boolean) => updateFeature('recommendations', v)}
               />
               <ToggleRow 
-                title="Dynamic Bundles (Coming Soon)" 
+                title="Dynamic Bundles" 
                 description="Offer customers a discount when they buy recommended items together."
                 enabled={config?.features?.bundles}
                 onChange={(v: boolean) => updateFeature('bundles', v)}
-                disabled
               />
               <ToggleRow 
-                title="AI Search Tuning (Coming Soon)" 
+                title="AI Search Tuning" 
                 description="Enhance Shopify's default search bar with semantic understanding."
                 enabled={config?.features?.search}
                 onChange={(v: boolean) => updateFeature('search', v)}
-                disabled
               />
             </div>
           </div>

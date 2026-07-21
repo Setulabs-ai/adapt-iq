@@ -56,6 +56,14 @@ class AdaptIQWidget {
       if (this.config.features.recommendations) {
         await this.renderRecommendations();
       }
+      
+      if (this.config.features.bundles) {
+        await this.renderBundles();
+      }
+
+      if (this.config.features.search) {
+        this.initAISearch();
+      }
 
     } catch (err) {
       console.error('[AdaptIQ] Initialization failed:', err);
@@ -163,6 +171,135 @@ class AdaptIQWidget {
         timestamp: new Date().toISOString()
       })
     }).catch(console.error);
+  }
+
+  async renderBundles() {
+    let container = document.getElementById('adaptiq-bundles');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'adaptiq-bundles';
+      
+      // Inject above recommendations if present, otherwise body
+      const recs = document.getElementById('adaptiq-recommendations');
+      if (recs) {
+        recs.parentNode.insertBefore(container, recs);
+      } else {
+        document.body.appendChild(container);
+      }
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/ai/bundles?storeId=${this.storeId}&productId=${this.currentProductId}`);
+      const data = await res.json();
+      
+      if (!data.products || data.products.length === 0) return;
+
+      const primaryColor = this.config.theme?.primaryColor || '#7c6dfa';
+
+      container.innerHTML = `
+        <div class="adaptiq-widget-container" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+          <div class="adaptiq-widget-title" style="color: ${primaryColor}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            ${data.title || 'Frequently Bought Together'}
+          </div>
+          <div class="adaptiq-product-grid" style="grid-template-columns: repeat(2, 1fr);">
+            ${data.products.map(p => `
+              <div class="adaptiq-product-card" data-id="${p.id}">
+                <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" style="height: 150px;"/>
+                <h4 class="adaptiq-product-name" style="font-size: 1rem;">${p.name}</h4>
+                <p class="adaptiq-product-price" style="font-size: 0.9rem;">${p.price}</p>
+                <button style="width:100%; padding:0.5rem; margin-top:0.5rem; background-color:${primaryColor}; color:white; border:none; border-radius:4px; cursor:pointer;">Add to Bundle</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      container.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = e.target.closest('.adaptiq-product-card');
+          this.trackEvent('bundle_add', { productId: card.dataset.id });
+          alert('Added to bundle!');
+        });
+      });
+
+    } catch (err) {
+      console.error('[AdaptIQ] Failed to load bundles:', err);
+    }
+  }
+
+  initAISearch() {
+    const searchInputs = document.querySelectorAll('input[type="search"], input[id*="search"], input[name*="search"]');
+    if (searchInputs.length === 0) return;
+
+    searchInputs.forEach(input => {
+      // Create dropdown container
+      const dropdown = document.createElement('div');
+      dropdown.className = 'adaptiq-search-dropdown';
+      dropdown.style.display = 'none';
+      dropdown.style.position = 'absolute';
+      dropdown.style.top = '100%';
+      dropdown.style.left = '0';
+      dropdown.style.width = '100%';
+      dropdown.style.backgroundColor = 'white';
+      dropdown.style.border = '1px solid #e2e8f0';
+      dropdown.style.borderRadius = '8px';
+      dropdown.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+      dropdown.style.zIndex = '9999';
+      dropdown.style.padding = '1rem';
+      
+      const parent = input.parentNode;
+      parent.style.position = 'relative';
+      parent.appendChild(dropdown);
+
+      let timeout = null;
+
+      input.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length < 3) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+          dropdown.style.display = 'block';
+          dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#64748b;">AI is searching...</div>`;
+          
+          try {
+            const res = await fetch(`${API_BASE}/ai/search?storeId=${this.storeId}&query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if (data.results && data.results.length > 0) {
+              const primaryColor = this.config.theme?.primaryColor || '#7c6dfa';
+              dropdown.innerHTML = data.results.map(p => `
+                <div style="display:flex; align-items:center; gap:1rem; padding:0.5rem; border-bottom:1px solid #f1f5f9; cursor:pointer;">
+                  <img src="${p.image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;" />
+                  <div style="flex:1">
+                    <div style="font-weight:600; font-size:0.9rem;">${p.name}</div>
+                    <div style="color:${primaryColor}; font-size:0.8rem;">${p.price}</div>
+                  </div>
+                </div>
+              `).join('');
+            } else {
+              dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#64748b;">No matching products found.</div>`;
+            }
+          } catch (err) {
+            dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#ef4444;">Search failed.</div>`;
+          }
+        }, 500);
+      });
+
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!parent.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+    });
   }
 }
 
