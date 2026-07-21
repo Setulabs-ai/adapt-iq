@@ -73,9 +73,23 @@ export async function GET(request: Request) {
   }
 
   // --- DYNAMIC SCRIPT INJECTOR ---
-  // Register the widget.js to load on the merchant's storefront automatically
   if (accessToken !== "mock_access_token") {
     try {
+      // 1. Delete existing script tags to prevent duplicates and bust cache
+      const existingTagsRes = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+        headers: { 'X-Shopify-Access-Token': accessToken }
+      });
+      if (existingTagsRes.ok) {
+        const { script_tags } = await existingTagsRes.json();
+        for (const tag of script_tags) {
+          await fetch(`https://${shop}/admin/api/2024-01/script_tags/${tag.id}.json`, {
+            method: 'DELETE',
+            headers: { 'X-Shopify-Access-Token': accessToken }
+          });
+        }
+      }
+
+      // 2. Inject fresh script tag with cache buster
       const scriptTagResponse = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
         method: 'POST',
         headers: {
@@ -85,7 +99,7 @@ export async function GET(request: Request) {
         body: JSON.stringify({
           script_tag: {
             event: "onload",
-            src: `${appHost}/widget.js`
+            src: `${appHost}/widget.js?v=${Date.now()}`
           }
         })
       });
