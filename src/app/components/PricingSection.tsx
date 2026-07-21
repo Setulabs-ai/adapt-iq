@@ -7,7 +7,7 @@ import styles from "./PricingSection.module.css";
 const plans = [
   {
     name: "Starter",
-    price: "49",
+    price: "2,999",
     desc: "Perfect for new stores ready to add AI-powered product discovery.",
     features: [
       "Precision Recommendations Widget",
@@ -22,7 +22,7 @@ const plans = [
   },
   {
     name: "Growth",
-    price: "149",
+    price: "7,999",
     desc: "The complete intelligent storefront stack for growing online stores.",
     features: [
       "Everything in Starter",
@@ -40,7 +40,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "299",
+    price: "14,999",
     desc: "Full power for high-volume stores and agency clients.",
     features: [
       "Everything in Growth",
@@ -116,7 +116,7 @@ export default function PricingSection() {
 
               {/* Price */}
               <div className={styles.priceRow}>
-                <span className="price-currency">$</span>
+                <span className="price-currency">₹</span>
                 <span className="price-amount">{plan.price}</span>
               </div>
               <div className="price-period">per month, billed monthly</div>

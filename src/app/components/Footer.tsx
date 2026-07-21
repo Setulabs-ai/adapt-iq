@@ -1,4 +1,4 @@
-import { Zap, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import styles from "./Footer.module.css";
 
 const links = {
@@ -17,10 +17,10 @@ export default function Footer() {
           <div className={styles.brand}>
             <div className={styles.logo}>
               <div className={styles.logoIcon}>
-                <Zap size={16} strokeWidth={2.5} />
+                <img src="/img/setu_logo.png" alt="Setu Labs Logo" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
               </div>
               <span className={styles.logoText}>
-                Adapt<span className={styles.logoAccent}>IQ</span>
+                Adapt IQ <span className={styles.logoAccent} style={{ fontSize: '0.65em', color: '#8a9bb8', fontWeight: 500 }}>by Setu Labs</span>
               </span>
             </div>
             <p className={styles.tagline}>

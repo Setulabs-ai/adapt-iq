@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Zap, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
@@ -27,10 +27,10 @@ export default function Navbar() {
         {/* Logo */}
         <a href="#" className={styles.logo}>
           <div className={styles.logoIcon}>
-            <Zap size={16} strokeWidth={2.5} />
+            <img src="/img/setu_logo.png" alt="Setu Labs Logo" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
           </div>
           <span className={styles.logoText}>
-            Adapt<span className={styles.logoAccent}>IQ</span>
+            Adapt IQ <span className={styles.logoAccent} style={{ fontSize: '0.65em', color: '#8a9bb8', fontWeight: 500 }}>by Setu Labs</span>
           </span>
         </a>
 

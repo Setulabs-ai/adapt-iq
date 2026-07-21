@@ -96,6 +96,32 @@ export default function Hero() {
 
         {/* Hero Visual — Adaptive Store Mockup */}
         <div className={`reveal-scale delay-2 ${styles.visual}`}>
+          
+          {/* Neural Data Flow Background Animation */}
+          <div className={styles.neuralNetwork}>
+            <div className={`${styles.neuralNode} ${styles.node1}`} />
+            <div className={`${styles.neuralNode} ${styles.node2}`} />
+            <div className={`${styles.neuralNode} ${styles.node3}`} />
+            <div className={`${styles.neuralNode} ${styles.node4}`} />
+            <div className={`${styles.neuralNode} ${styles.node5}`} />
+            
+            {/* Connecting Lines */}
+            <svg className={styles.neuralLines} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="neural-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#7c6dfa" />
+                  <stop offset="50%" stopColor="#00d4ff" />
+                  <stop offset="100%" stopColor="#00e5a0" />
+                </linearGradient>
+              </defs>
+              <path d="M 50,150 Q 150,100 250,50" className={styles.neuralPath} />
+              <path d="M 50,150 Q 200,200 350,150" className={styles.neuralPath} />
+              <path d="M 250,50 Q 300,100 350,150" className={styles.neuralPath} />
+              <path d="M 50,150 Q 150,300 200,350" className={styles.neuralPath} />
+              <path d="M 350,150 Q 250,250 200,350" className={styles.neuralPath} />
+            </svg>
+          </div>
+
           <div className={styles.mockupWrapper}>
             {/* Browser chrome */}
             <div className={styles.browserBar}>
