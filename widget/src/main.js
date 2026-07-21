@@ -43,13 +43,46 @@ class AdaptIQWidget {
       // 3. Track page view
       this.trackEvent('page_view', { path: window.location.pathname, productId: this.currentProductId });
 
-      // 4. Render Features
+      // 4. Extract intent from script URL (for Playground Demo)
+      const urlParams = new URL(scriptSrc).searchParams;
+      const intent = urlParams.get('intent');
+
+      // 5. Apply Adaptive Storefront Logic if intent is detected
+      if (intent && intent !== 'general') {
+        await this.applyAdaptiveStorefront(intent);
+      }
+
+      // 6. Render Features
       if (this.config.features.recommendations) {
         await this.renderRecommendations();
       }
 
     } catch (err) {
       console.error('[AdaptIQ] Initialization failed:', err);
+    }
+  }
+
+  async applyAdaptiveStorefront(intent) {
+    try {
+      console.log(`[AdaptIQ] Adapting Storefront for intent: ${intent}`);
+      const res = await fetch(`${API_BASE}/ai/adaptive?intent=${intent}`);
+      const adaptiveData = await res.json();
+
+      // Overwrite the DOM dynamically
+      const headline = document.getElementById('hero-headline');
+      const subtext = document.getElementById('hero-subtext');
+      const heroSection = document.getElementById('adaptive-hero');
+
+      if (headline) headline.innerText = adaptiveData.headline;
+      if (subtext) subtext.innerText = adaptiveData.subtext;
+      
+      // Override primary color for this session
+      if (this.config && this.config.theme) {
+        this.config.theme.primaryColor = adaptiveData.primaryColor;
+      }
+
+    } catch (err) {
+      console.error('[AdaptIQ] Failed to apply adaptive storefront:', err);
     }
   }
 
