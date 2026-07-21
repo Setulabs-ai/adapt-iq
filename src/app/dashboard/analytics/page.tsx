@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { TrendingUp, Users, MousePointerClick, DollarSign, RefreshCw } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import styles from "../dashboard.module.css";
 
 export default function DashboardOverview() {
@@ -33,11 +34,43 @@ export default function DashboardOverview() {
       </div>
 
       <div className={styles.statsGrid}>
-        <StatCard title="Widget Views" value={stats?.views?.toLocaleString() || "0"} icon={<Users size={20} />} trend="+12.5%" />
-        <StatCard title="Clicks Generated" value={stats?.clicks?.toLocaleString() || "0"} icon={<MousePointerClick size={20} />} trend="+5.2%" />
-        <StatCard title="Click-Through Rate" value={stats?.ctr || "0%"} icon={<TrendingUp size={20} />} trend="+1.1%" />
-        <StatCard title="Est. Revenue Lift" value={stats?.revenueLift || "$0"} icon={<DollarSign size={20} />} trend="+8.4%" highlight />
+        <StatCard title="Widget Views" value={stats?.views?.toLocaleString() || "0"} icon={<Users size={20} />} trend={stats?.trends?.views || "+0%"} />
+        <StatCard title="Clicks Generated" value={stats?.clicks?.toLocaleString() || "0"} icon={<MousePointerClick size={20} />} trend={stats?.trends?.clicks || "+0%"} />
+        <StatCard title="Click-Through Rate" value={stats?.ctr || "0%"} icon={<TrendingUp size={20} />} trend={stats?.trends?.ctr || "+0%"} />
+        <StatCard title="Est. Revenue Lift" value={stats?.revenueLift || "$0"} icon={<DollarSign size={20} />} trend={stats?.trends?.revenueLift || "+0%"} highlight />
       </div>
+
+      {stats?.chartData && stats.chartData.length > 0 && (
+        <div className={styles.activityCard} style={{ marginBottom: '2rem' }}>
+          <div className={styles.activityHeader}>
+            <h3 className={styles.activityTitle}>Widget Performance (7 Days)</h3>
+          </div>
+          <div style={{ width: '100%', height: '300px', padding: '1rem 0' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#f8fafc' }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                />
+                <Area type="monotone" dataKey="views" name="Views" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
+                <Area type="monotone" dataKey="clicks" name="AI Clicks" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#colorClicks)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className={styles.activityCard}>
         <div className={styles.activityHeader}>
@@ -77,8 +110,8 @@ function StatCard({ title, value, icon, trend, highlight = false }: { title: str
       </div>
       <div className={styles.statValue}>{value}</div>
       <div className={styles.statTrendRow}>
-        <span className={styles.statTrend}>{trend}</span>
-        <span className={styles.statTrendLabel}>vs last week</span>
+        <span className={`${styles.statTrend} ${trend.startsWith('-') ? styles.trendNegative : ''}`} style={{ color: trend.startsWith('-') ? '#ef4444' : '#10b981' }}>{trend}</span>
+        <span className={styles.statTrendLabel}>vs historical avg</span>
       </div>
     </div>
   );
