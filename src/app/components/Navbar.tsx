@@ -45,11 +45,11 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className={styles.actions}>
-          <a href="#pricing" className="btn btn-secondary btn-sm">
-            View Pricing
+          <a href="/dashboard/settings" className="btn btn-secondary btn-sm">
+            Go to Dashboard
           </a>
-          <a href="#cta" className="btn btn-primary btn-sm">
-            Get Started
+          <a href="/playground" className="btn btn-primary btn-sm">
+            Try Interactive Demo
           </a>
         </div>
 
@@ -77,11 +77,11 @@ export default function Navbar() {
             </a>
           ))}
           <div className={styles.mobileCtas}>
-            <a href="#pricing" className="btn btn-secondary btn-sm w-full" style={{ justifyContent: "center" }}>
-              View Pricing
+            <a href="/dashboard/settings" className="btn btn-secondary btn-sm w-full" style={{ justifyContent: "center" }}>
+              Go to Dashboard
             </a>
-            <a href="#cta" className="btn btn-primary btn-sm w-full" style={{ justifyContent: "center" }}>
-              Get Started
+            <a href="/playground" className="btn btn-primary btn-sm w-full" style={{ justifyContent: "center" }}>
+              Try Interactive Demo
             </a>
           </div>
         </div>
