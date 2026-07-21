@@ -7,12 +7,14 @@ import {
   LogOut
 } from "lucide-react";
 import styles from "./dashboard.module.css";
+import { getSessionStoreId } from "@/lib/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const storeId = await getSessionStoreId();
   return (
     <div className={styles.container}>
       {/* Sidebar */}
@@ -68,7 +70,7 @@ export default function DashboardLayout({
           <h1 className={styles.pageTitle}>Merchant Portal</h1>
           <div className={styles.headerActions}>
             <div className={styles.connectionStatus}>
-              Connected: <span className={styles.storeBadge}>store_123</span>
+              Connected: <span className={styles.storeBadge}>{storeId || 'Unknown'}</span>
             </div>
             <div className={styles.avatar}>
               AD

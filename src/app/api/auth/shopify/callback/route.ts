@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
+import { SignJWT } from 'jose';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,9 +51,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // Generate a unique store ID (in a real app, this might map to shopify shop ID)
-  // For the demo, we will map this to our existing `store_123` so the dashboard works instantly
-  const storeId = 'store_123'; 
+  // Generate a unique store ID dynamically based on the shop domain
+  const storeId = shop.replace('.myshopify.com', ''); 
 
   // Save the access token and shop domain to Supabase
   const { error: dbError } = await supabase
@@ -97,9 +98,68 @@ export async function GET(request: Request) {
     } catch (err) {
       console.error("[Shopify Auth] ScriptTag injection error:", err);
     }
+
+    // --- BULK CATALOG SYNC & WEBHOOKS ---
+    try {
+      const productsResponse = await fetch(`https://${shop}/admin/api/2024-01/products.json?limit=250`, {
+        headers: { 'X-Shopify-Access-Token': accessToken }
+      });
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json();
+        const products = productsData.products.map((p: any) => ({
+          id: String(p.id),
+          store_id: storeId,
+          name: p.title,
+          price: p.variants && p.variants.length > 0 ? `$${p.variants[0].price}` : null,
+          image: p.image?.src || null,
+          description: p.body_html || null,
+          tags: p.tags ? p.tags.split(',').map((t: string) => t.trim()) : []
+        }));
+        
+        if (products.length > 0) {
+          const { error: syncError } = await supabase.from('products').upsert(products, { onConflict: 'id,store_id' });
+          if (syncError) console.error("[Shopify Auth] Bulk sync error:", syncError);
+          else console.log(`[Shopify Auth] Synced ${products.length} products for ${storeId}`);
+        }
+      }
+      
+      // Register Webhook for future updates
+      await fetch(`https://${shop}/admin/api/2024-01/webhooks.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken
+        },
+        body: JSON.stringify({
+          webhook: {
+            topic: "products/update",
+            address: `${appHost}/api/webhooks/shopify/products?storeId=${storeId}`,
+            format: "json"
+          }
+        })
+      });
+    } catch (err) {
+      console.error("[Shopify Auth] Sync/Webhook error:", err);
+    }
   }
 
-  // Redirect the merchant to the App Dashboard (via App Bridge in a real embedded app)
-  // Since this is a standalone demo, we redirect to our local dashboard
+  // --- SECURE SESSION COOKIE ---
+  const secretKey = new TextEncoder().encode(process.env.SHOPIFY_API_SECRET || 'fallback_secret');
+  const token = await new SignJWT({ storeId, shop })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('30d')
+    .sign(secretKey);
+
+  const cookieStore = await cookies();
+  cookieStore.set('adaptiq_session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    path: '/'
+  });
+
+  // Redirect the merchant to the App Dashboard
   return NextResponse.redirect(`${appHost}/dashboard`);
 }

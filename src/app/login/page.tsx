@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BrainCircuit } from 'lucide-react';
 import styles from './login.module.css';
-import { authenticate } from './actions';
+import styles from './login.module.css';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -17,15 +17,20 @@ export default function LoginPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const result = await authenticate(formData);
-
-    if (result?.error) {
-      setError(result.error);
+    const shop = formData.get('shop') as string;
+    
+    if (!shop) {
+      setError("Please enter your store domain");
       setLoading(false);
-    } else {
-      router.push('/dashboard');
-      router.refresh();
+      return;
     }
+
+    let cleanShop = shop.replace('https://', '').replace('http://', '').trim();
+    if (!cleanShop.endsWith('.myshopify.com')) {
+      cleanShop += '.myshopify.com';
+    }
+
+    window.location.href = `/api/auth/shopify/install?shop=${cleanShop}`;
   }
 
   return (
@@ -38,29 +43,22 @@ export default function LoginPage() {
         
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
-            <label htmlFor="email">Work Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              placeholder="you@company.com"
-              required 
-            />
+            <label htmlFor="shop">Shopify Store Domain</label>
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+              <input 
+                type="text" 
+                id="shop" 
+                name="shop" 
+                placeholder="your-store-name"
+                style={{ flex: 1, border: 'none', background: 'transparent', padding: '12px', color: '#fff', outline: 'none' }}
+                required 
+              />
+              <span style={{ padding: '0 12px', color: '#9ca3af', fontSize: '0.875rem' }}>.myshopify.com</span>
+            </div>
           </div>
           
-          <div className={styles.inputGroup}>
-            <label htmlFor="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              placeholder="••••••••"
-              required 
-            />
-          </div>
-
           <button type="submit" className={styles.submitBtn} disabled={loading}>
-            {loading ? 'Authenticating...' : 'Sign In'}
+            {loading ? 'Redirecting to Shopify...' : 'Sign In with Shopify'}
           </button>
 
           {error && <p className={styles.error}>{error}</p>}

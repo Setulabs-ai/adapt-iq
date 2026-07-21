@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
+import { getSessionStoreId } from '@/lib/auth';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const storeId = searchParams.get('storeId');
+  const storeId = await getSessionStoreId();
 
   if (!storeId) {
-    return NextResponse.json({ error: "Missing storeId" }, { status: 400 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Verify store exists

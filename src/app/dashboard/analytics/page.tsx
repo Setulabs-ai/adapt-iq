@@ -10,7 +10,7 @@ export default function DashboardOverview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/stats?storeId=store_123")
+    fetch("/api/stats")
       .then(res => res.json())
       .then(data => {
         setStats(data);
