@@ -182,9 +182,10 @@ export async function GET(request: Request) {
     path: '/'
   });
 
-  // Redirect the merchant to the Billing Gate or Dashboard
-  if (storeConfig && !storeConfig.subscription_active) {
-    return NextResponse.redirect(`${appHost}/api/billing/charge?shop=${shop}`);
-  }
+  // Bypassing billing gate for testing as requested
+  // if (storeConfig && !storeConfig.subscription_active) {
+  //   return NextResponse.redirect(`${appHost}/api/billing/charge?shop=${shop}`);
+  // }
+  
   return NextResponse.redirect(`${appHost}/dashboard`);
 }
