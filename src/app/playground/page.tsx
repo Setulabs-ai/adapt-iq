@@ -129,7 +129,7 @@ export default function Playground() {
                 <div className={styles.hamburger}>
                   <span></span><span></span><span></span>
                 </div>
-                <div className={styles.storeLogo}>LIQUID</div>
+                <div className={styles.storeLogo}>SETU</div>
                 <div className={styles.cartIcon}>
                   <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                 </div>
@@ -143,34 +143,34 @@ export default function Playground() {
               <main className={styles.storeMain}>
                 <div className={styles.heroSection} id="adaptive-hero">
                   <div className={styles.heroContent}>
-                    <h1 id="hero-headline">The Ultimate Winter Collection</h1>
-                    <p id="hero-subtext">Engineered for peak performance.</p>
+                    <h1 id="hero-headline">The Summer Collection</h1>
+                    <p id="hero-subtext">Elevate your everyday wardrobe.</p>
                   </div>
                 </div>
 
                 <div className={styles.productDisplay}>
                   <div className={styles.imageWrapper}>
-                    <img src="/img/product1.png" alt="Snowboard" className={styles.productImage} />
+                    <img src="https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?q=80&w=400&auto=format&fit=crop" alt="Oxford Shirt" className={styles.productImage} style={{mixBlendMode: 'normal', borderRadius: '8px'}} />
                     <div className={styles.badges}>Best Seller</div>
                   </div>
                   
                   <div className={styles.productInfo}>
                     <div className={styles.reviews}>★★★★★ <span>(128 Reviews)</span></div>
                     <div className={styles.productHeader}>
-                      <h2>The Zenith Snowboard</h2>
+                      <h2>Classic White Oxford Shirt</h2>
                     </div>
-                    <p className={styles.price}>$629.00</p>
+                    <p className={styles.price}>$49.99</p>
                     
                     <div className={styles.variants}>
                       <div className={styles.variantTitle}>Size</div>
                       <div className={styles.sizeGrid}>
-                        <div className={styles.sizeBox}>155cm</div>
-                        <div className={`${styles.sizeBox} ${styles.activeSize}`}>158cm</div>
-                        <div className={styles.sizeBox}>162cm</div>
+                        <div className={styles.sizeBox}>S</div>
+                        <div className={`${styles.sizeBox} ${styles.activeSize}`}>M</div>
+                        <div className={styles.sizeBox}>L</div>
                       </div>
                     </div>
 
-                    <p className={styles.productDesc}>Our flagship all-mountain board. Perfect balance of flex and control for riders who demand the best.</p>
+                    <p className={styles.productDesc}>A timeless, crisp white oxford shirt perfect for business or casual wear. 100% cotton.</p>
                     
                     <button className={styles.addToCart}>Add to Cart</button>
                   </div>

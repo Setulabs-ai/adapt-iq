@@ -692,3 +692,49 @@
   color: #fff;
   margin-bottom: 0.25rem;
 }
+
+/* =========================================
+   RESPONSIVENESS (MOBILE & TABLET)
+   ========================================= */
+@media (max-width: 1024px) {
+  .playgroundWrapper {
+    height: auto;
+    overflow-y: auto;
+  }
+  
+  .mainLayout {
+    flex-direction: column;
+    overflow-y: visible;
+    height: auto;
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  .leftColumn, .rightColumn {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .centerColumn {
+    width: 100%;
+    min-height: 800px;
+    margin-bottom: 2rem;
+  }
+
+  .phoneMockup {
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .phoneMockup {
+    width: 100%;
+    max-width: 375px;
+    transform: scale(0.9);
+  }
+  
+  .topNav {
+    padding: 0 1rem;
+  }
+}
