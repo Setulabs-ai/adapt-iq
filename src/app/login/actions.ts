@@ -11,7 +11,8 @@ export async function authenticate(formData: FormData) {
   // const { error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (email && password === 'setulabs2026') {
-    cookies().set('auth_token', 'mock_secure_token', { 
+    const cookieStore = await cookies();
+    cookieStore.set('auth_token', 'mock_secure_token', { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -24,5 +25,6 @@ export async function authenticate(formData: FormData) {
 }
 
 export async function logout() {
-  cookies().delete('auth_token');
+  const cookieStore = await cookies();
+  cookieStore.delete('auth_token');
 }
