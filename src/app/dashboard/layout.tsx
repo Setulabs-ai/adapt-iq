@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { getSessionStoreId } from "@/lib/auth";
+import { LogoutButton } from "./LogoutButton";
 
 export default async function DashboardLayout({
   children,
@@ -57,10 +58,7 @@ export default async function DashboardLayout({
         </div>
         
         <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn}>
-            <LogOut className="w-5 h-5" />
-            Sign Out
-          </button>
+          <LogoutButton />
         </div>
       </aside>
 
