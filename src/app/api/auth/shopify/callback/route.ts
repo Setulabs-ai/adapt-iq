@@ -75,13 +75,13 @@ export async function GET(request: Request) {
   if (accessToken !== "mock_access_token") {
     try {
       // 1. Delete existing script tags to prevent duplicates and bust cache
-      const existingTagsRes = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+      const existingTagsRes = await fetch(`https://${shop}/admin/api/2026-04/script_tags.json`, {
         headers: { 'X-Shopify-Access-Token': accessToken }
       });
       if (existingTagsRes.ok) {
         const { script_tags } = await existingTagsRes.json();
         for (const tag of script_tags) {
-          await fetch(`https://${shop}/admin/api/2024-01/script_tags/${tag.id}.json`, {
+          await fetch(`https://${shop}/admin/api/2026-04/script_tags/${tag.id}.json`, {
             method: 'DELETE',
             headers: { 'X-Shopify-Access-Token': accessToken }
           });
@@ -89,7 +89,7 @@ export async function GET(request: Request) {
       }
 
       // 2. Inject fresh script tag with cache buster
-      const scriptTagResponse = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+      const scriptTagResponse = await fetch(`https://${shop}/admin/api/2026-04/script_tags.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,10 +112,9 @@ export async function GET(request: Request) {
       console.error("[Shopify Auth] ScriptTag injection error:", err);
     }
 
-    debugInfo.accessTokenPrefix = accessToken?.substring(0,4) || "none";
     // --- BULK CATALOG SYNC & WEBHOOKS ---
     try {
-      const productsResponse = await fetch(`https://${shop}/admin/api/2024-01/products.json?limit=250`, {
+      const productsResponse = await fetch(`https://${shop}/admin/api/2026-04/products.json?limit=250`, {
         headers: { 'X-Shopify-Access-Token': accessToken }
       });
       if (productsResponse.ok) {
@@ -134,18 +133,16 @@ export async function GET(request: Request) {
           const { error: syncError } = await supabase.from('products').upsert(products, { onConflict: 'id,store_id' });
           if (syncError) { 
             console.error("[Shopify Auth] Bulk sync error:", syncError);
-            debugInfo.syncError = syncError;
           } else {
             console.log(`[Shopify Auth] Synced ${products.length} products for ${storeId}`);
-            debugInfo.productsSynced = products.length;
           }
         }
       } else {
-        debugInfo.syncError = "Shopify API returned " + productsResponse.status;
+        console.error("Shopify API returned " + productsResponse.status, await productsResponse.text());
       }
       
       // Register Webhook for future updates
-      await fetch(`https://${shop}/admin/api/2024-01/webhooks.json`, {
+      await fetch(`https://${shop}/admin/api/2026-04/webhooks.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +178,6 @@ export async function GET(request: Request) {
     path: '/'
   });
 
-  // Redirect the merchant to the App Dashboard (Commented out for debug)
-  // return NextResponse.redirect(`${appHost}/dashboard`);
-  return NextResponse.json({ success: true, debugInfo, storeId });
+  // Redirect the merchant to the App Dashboard
+  return NextResponse.redirect(`${appHost}/dashboard`);
 }
