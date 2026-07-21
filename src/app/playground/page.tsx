@@ -134,7 +134,7 @@ export default function Playground() {
 
                 <div className={styles.productDisplay}>
                   <div className={styles.imageWrapper}>
-                    <img src="https://cdn.shopify.com/s/files/1/0885/8730/5239/files/Main_046c8230-07ea-4ff7-b12e-a320aa1961e9.jpg" alt="Snowboard" className={styles.productImage} />
+                    <img src="/img/product1.png" alt="Snowboard" className={styles.productImage} />
                     <div className={styles.badges}>Best Seller</div>
                   </div>
                   

@@ -121,23 +121,25 @@ class AdaptIQWidget {
 
       // Build HTML
       container.innerHTML = `
-        <div class="adaptiq-widget-container">
-          <div class="adaptiq-widget-title" style="color: ${primaryColor}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="adaptiq-widget-container" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin: 2rem 1.5rem;">
+          <div class="adaptiq-widget-title" style="color: ${primaryColor}; font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
             ${data.title || 'Precision Recommendations'}
           </div>
-          <div class="adaptiq-product-grid">
+          <div class="adaptiq-product-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
             ${data.products.map(p => `
-              <div class="adaptiq-product-card" data-id="${p.id}">
-                <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
-                <h4 class="adaptiq-product-name">${p.name}</h4>
-                <p class="adaptiq-product-price">${p.price}</p>
+              <div class="adaptiq-product-card" data-id="${p.id}" style="cursor: pointer;">
+                <div style="background: #f8fafc; border-radius: 12px; padding: 0.5rem; margin-bottom: 0.75rem;">
+                  <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 120px; object-fit: contain; mix-blend-mode: multiply;" />
+                </div>
+                <h4 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; line-height: 1.2;">${p.name}</h4>
+                <p style="font-size: 0.85rem; font-weight: 600; color: ${primaryColor}; margin: 0;">${p.price}</p>
               </div>
             `).join('')}
           </div>
-          <div class="adaptiq-powered-by">
+          <div class="adaptiq-powered-by" style="font-size: 0.7rem; color: #94a3b8; text-align: center; margin-top: 1rem;">
             Powered by AdaptIQ
           </div>
         </div>
@@ -197,20 +199,22 @@ class AdaptIQWidget {
       const primaryColor = this.config.theme?.primaryColor || '#7c6dfa';
 
       container.innerHTML = `
-        <div class="adaptiq-widget-container" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-          <div class="adaptiq-widget-title" style="color: ${primaryColor}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="adaptiq-widget-container" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin: 0 1.5rem 1.5rem;">
+          <div class="adaptiq-widget-title" style="color: ${primaryColor}; font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             ${data.title || 'Frequently Bought Together'}
           </div>
-          <div class="adaptiq-product-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="adaptiq-product-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
             ${data.products.map(p => `
               <div class="adaptiq-product-card" data-id="${p.id}">
-                <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" style="height: 150px;"/>
-                <h4 class="adaptiq-product-name" style="font-size: 1rem;">${p.name}</h4>
-                <p class="adaptiq-product-price" style="font-size: 0.9rem;">${p.price}</p>
-                <button style="width:100%; padding:0.5rem; margin-top:0.5rem; background-color:${primaryColor}; color:white; border:none; border-radius:4px; cursor:pointer;">Add to Bundle</button>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 0.5rem; margin-bottom: 0.75rem;">
+                  <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 120px; object-fit: contain; mix-blend-mode: multiply;" />
+                </div>
+                <h4 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; line-height: 1.2;">${p.name}</h4>
+                <p style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin: 0;">${p.price}</p>
+                <button style="width:100%; padding:0.6rem; margin-top:0.75rem; background-color:#0f172a; color:white; border:none; border-radius:99px; font-weight: 600; font-size: 0.8rem; cursor:pointer;">Add to Bundle</button>
               </div>
             `).join('')}
           </div>
