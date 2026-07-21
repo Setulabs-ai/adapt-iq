@@ -1,54 +1,410 @@
-(function(){var e=document.createElement(`style`);e.textContent=`.adaptiq-widget-container{background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;margin:40px 0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}.adaptiq-widget-title{color:#111827;align-items:center;gap:8px;margin-bottom:20px;font-size:1.25rem;font-weight:600;display:flex}.adaptiq-widget-title svg{width:20px;height:20px}.adaptiq-product-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;display:grid}.adaptiq-product-card{cursor:pointer;background:#fff;border-radius:8px;flex-direction:column;padding:12px;transition:transform .2s,box-shadow .2s;display:flex;box-shadow:0 1px 3px #0000001a}.adaptiq-product-card:hover{transform:translateY(-2px);box-shadow:0 4px 6px #0000001a}.adaptiq-product-image{aspect-ratio:1;object-fit:cover;background:#f3f4f6;border-radius:6px;width:100%;margin-bottom:12px}.adaptiq-product-name{color:#374151;margin:0 0 4px;font-size:.875rem;font-weight:500}.adaptiq-product-price{color:#111827;margin:0;font-size:.875rem;font-weight:600}.adaptiq-powered-by{color:#9ca3af;text-align:right;justify-content:flex-end;align-items:center;gap:4px;margin-top:16px;font-size:.75rem;display:flex}
-/*$vite$:1*/`,document.head.appendChild(e);var t=document.currentScript||document.querySelector(`script[src*="widget.js"]`),n=t?t.src:window.location.origin,r=new URL(n).origin+`/api`,i=class{constructor(){this.storeId=null,this.currentProductId=null,this.config=null,typeof window<`u`&&(window.adaptIqInstance=this),this.init()}async init(){let e=document.currentScript||document.querySelector(`script[data-store-id]`);this.storeId=window.location.hostname.includes('.myshopify.com')?window.location.hostname.replace('.myshopify.com', ''):(e&&e.getAttribute(`data-store-id`)?e.getAttribute(`data-store-id`):`store_123`);let t=`clothing_101`;if(window.meta&&window.meta.product&&window.meta.product.id)t=String(window.meta.product.id);else if(window.ShopifyAnalytics&&window.ShopifyAnalytics.meta&&window.ShopifyAnalytics.meta.product&&window.ShopifyAnalytics.meta.product.id)t=String(window.ShopifyAnalytics.meta.product.id);else{let e=document.querySelector(`meta[property="adaptiq:product_id"]`);e&&(t=e.getAttribute(`content`))}this.currentProductId=t;try{let e=await fetch(`${r}/config?storeId=${this.storeId}`);if(!e.ok)throw Error(`Failed to load AdaptIQ config`);this.config=await e.json(),this.trackEvent(`page_view`,{path:window.location.pathname,productId:this.currentProductId});let t=this.extractContext();this.config.features.adaptive&&await this.applyAdaptiveStorefront(t),this.config.features.recommendations&&await this.renderRecommendations(),this.config.features.bundles&&await this.renderBundles(),this.config.features.search&&this.initAISearch()}catch(e){console.error(`[AdaptIQ] Initialization failed:`,e)}}extractContext(){return window.adaptIqMockContext?window.adaptIqMockContext:{referrer:document.referrer||``,userAgent:navigator.userAgent||``,speed:navigator.connection?navigator.connection.effectiveType:`unknown`,urlParams:window.location.search}}async applyAdaptiveStorefront(e){try{console.log(`[AdaptIQ] Adapting Storefront using context:`,e);let t=await fetch(`${r}/ai/adaptive`,{method:`POST`,headers:{"Content-Type":`application/json`},body:JSON.stringify({storeId:this.storeId,context:e})});if(!t.ok)throw Error(`Failed to fetch adaptive copy`);let n=await t.json(),i=document.getElementById(`hero-headline`),a=document.getElementById(`hero-subtext`);document.getElementById(`adaptive-hero`),i&&(i.innerText=n.headline),a&&(a.innerText=n.subtext),this.config&&this.config.theme&&n.primaryColor&&(this.config.theme.primaryColor=n.primaryColor)}catch(e){console.error(`[AdaptIQ] Failed to apply adaptive storefront:`,e)}}async renderRecommendations(){let e=document.getElementById(`adaptiq-recommendations`);if(!e){e=document.createElement(`div`),e.id=`adaptiq-recommendations`;let t=document.querySelector(`main`)||document.querySelector(`#MainContent`)||document.querySelector(`.product-details`)||document.body;t===document.body||t.tagName.toLowerCase()===`main`?t.appendChild(e):t.parentNode.insertBefore(e,t.nextSibling)}try{let t=await(await fetch(`${r}/recommendations?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();if(!t.products||t.products.length===0)return;let n=this.config.theme?.primaryColor||`#7c6dfa`;e.innerHTML=`
-        <div class="adaptiq-widget-container" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin: 2rem 1.5rem;">
-          <div class="adaptiq-widget-title" style="color: ${n}; font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-            ${t.title||`Precision Recommendations`}
-          </div>
-          <div class="adaptiq-product-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            ${t.products.map(e=>`
-              <div class="adaptiq-product-card" data-id="${e.id}" style="cursor: pointer;">
-                <div style="background: #f8fafc; border-radius: 12px; padding: 0.5rem; margin-bottom: 0.75rem;">
-                  <img src="${e.image}" alt="${e.name}" style="width: 100%; height: 120px; object-fit: contain; mix-blend-mode: multiply;" />
-                </div>
-                <h4 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; line-height: 1.2;">${e.name}</h4>
-                <p style="font-size: 0.85rem; font-weight: 600; color: ${n}; margin: 0;">${e.price}</p>
-              </div>
-            `).join(``)}
-          </div>
-          <div class="adaptiq-powered-by" style="font-size: 0.7rem; color: #94a3b8; text-align: center; margin-top: 1rem;">
-            Powered by AdaptIQ
-          </div>
-        </div>
-      `,e.querySelectorAll(`.adaptiq-product-card`).forEach(e=>{e.addEventListener(`click`,()=>{this.trackEvent(`recommendation_click`,{clickedProductId:e.dataset.id,sourceProductId:this.currentProductId}),alert(`Navigating to product: ${e.dataset.id}`)})})}catch(e){console.error(`[AdaptIQ] Failed to load recommendations:`,e)}}trackEvent(e,t){fetch(`${r}/track`,{method:`POST`,headers:{"Content-Type":`application/json`},body:JSON.stringify({storeId:this.storeId,event:e,data:t,timestamp:new Date().toISOString()})}).catch(console.error)}async renderBundles(){let e=document.getElementById(`adaptiq-bundles`);if(!e){e=document.createElement(`div`),e.id=`adaptiq-bundles`;let t=document.getElementById(`adaptiq-recommendations`);t?t.parentNode.insertBefore(e,t):document.body.appendChild(e)}try{let t=await(await fetch(`${r}/ai/bundles?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();if(!t.products||t.products.length===0)return;let n=this.config.theme?.primaryColor||`#7c6dfa`;e.innerHTML=`
-        <div class="adaptiq-widget-container" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin: 0 1.5rem 1.5rem;">
-          <div class="adaptiq-widget-title" style="color: ${n}; font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            ${t.title||`Frequently Bought Together`}
-          </div>
-          <div class="adaptiq-product-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            ${t.products.map(e=>`
-              <div class="adaptiq-product-card" data-id="${e.id}">
-                <div style="background: #f8fafc; border-radius: 12px; padding: 0.5rem; margin-bottom: 0.75rem;">
-                  <img src="${e.image}" alt="${e.name}" style="width: 100%; height: 120px; object-fit: contain; mix-blend-mode: multiply;" />
-                </div>
-                <h4 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; line-height: 1.2;">${e.name}</h4>
-                <p style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin: 0;">${e.price}</p>
-                <button style="width:100%; padding:0.6rem; margin-top:0.75rem; background-color:#0f172a; color:white; border:none; border-radius:99px; font-weight: 600; font-size: 0.8rem; cursor:pointer;">Add to Bundle</button>
-              </div>
-            `).join(``)}
-          </div>
-        </div>
-      `,e.querySelectorAll(`button`).forEach(e=>{e.addEventListener(`click`,e=>{e.stopPropagation();let t=e.target.closest(`.adaptiq-product-card`);this.trackEvent(`bundle_add`,{productId:t.dataset.id}),alert(`Added to bundle!`)})})}catch(e){console.error(`[AdaptIQ] Failed to load bundles:`,e)}}initAISearch(){let e=document.querySelectorAll(`input[type="search"], input[id*="search"], input[name*="search"]`);e.length!==0&&e.forEach(e=>{let t=document.createElement(`div`);t.className=`adaptiq-search-dropdown`,t.style.display=`none`,t.style.position=`absolute`,t.style.top=`100%`,t.style.left=`0`,t.style.width=`100%`,t.style.backgroundColor=`white`,t.style.border=`1px solid #e2e8f0`,t.style.borderRadius=`8px`,t.style.boxShadow=`0 10px 15px -3px rgba(0, 0, 0, 0.1)`,t.style.zIndex=`9999`,t.style.padding=`1rem`;let n=e.parentNode;n.style.position=`relative`,n.appendChild(t);let i=null;e.addEventListener(`input`,e=>{let n=e.target.value;if(n.length<3){t.style.display=`none`;return}clearTimeout(i),i=setTimeout(async()=>{t.style.display=`block`,t.innerHTML=`<div style="text-align:center; padding:1rem; color:#64748b;">AI is searching...</div>`;try{let e=await(await fetch(`${r}/ai/search?storeId=${this.storeId}&query=${encodeURIComponent(n)}`)).json();if(e.results&&e.results.length>0){let n=this.config.theme?.primaryColor||`#7c6dfa`;t.innerHTML=e.results.map(e=>`
-                <div style="display:flex; align-items:center; gap:1rem; padding:0.5rem; border-bottom:1px solid #f1f5f9; cursor:pointer;">
-                  <img src="${e.image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;" />
-                  <div style="flex:1">
-                    <div style="font-weight:600; font-size:0.9rem;">${e.name}</div>
-                    <div style="color:${n}; font-size:0.8rem;">${e.price}</div>
+(function() {
+  var css = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  
+  .adaptiq-widget-container {
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 24px;
+    margin: 40px 1.5rem;
+    padding: 32px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,0.5);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+  .adaptiq-widget-container::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; right: -50%; bottom: -50%;
+    background: radial-gradient(circle at center, rgba(124, 109, 250, 0.05) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .adaptiq-widget-container:hover {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.8);
+    transform: translateY(-2px);
+  }
+  .adaptiq-widget-title {
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    display: flex;
+    z-index: 1;
+    position: relative;
+  }
+  .adaptiq-widget-title svg {
+    width: 24px;
+    height: 24px;
+    filter: drop-shadow(0 4px 6px rgba(124, 109, 250, 0.3));
+  }
+  .adaptiq-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+    display: grid;
+    z-index: 1;
+    position: relative;
+  }
+  .adaptiq-product-card {
+    cursor: pointer;
+    background: #ffffff;
+    border-radius: 16px;
+    flex-direction: column;
+    padding: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+  .adaptiq-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .adaptiq-product-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  }
+  .adaptiq-product-image-container {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    z-index: 2;
+    position: relative;
+    overflow: hidden;
+  }
+  .adaptiq-product-image {
+    aspect-ratio: 1;
+    object-fit: contain;
+    width: 100%;
+    mix-blend-mode: multiply;
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .adaptiq-product-card:hover .adaptiq-product-image {
+    transform: scale(1.1) rotate(2deg);
+  }
+  .adaptiq-product-name {
+    color: #1e293b;
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    z-index: 2;
+    position: relative;
+  }
+  .adaptiq-product-price {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    z-index: 2;
+    position: relative;
+  }
+  .adaptiq-add-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  }
+  .adaptiq-add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.3);
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  }
+  .adaptiq-add-btn:active {
+    transform: translateY(0);
+  }
+  .adaptiq-powered-by {
+    color: #94a3b8;
+    text-align: right;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 1;
+    position: relative;
+  }
+  .adaptiq-powered-by:hover {
+    opacity: 1;
+  }
+  .adaptiq-search-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 9999;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+  }
+  `;
+  var e = document.createElement(`style`);
+  e.textContent = css;
+  document.head.appendChild(e);
+
+  var scriptTag = document.currentScript || document.querySelector(`script[src*="widget.js"]`);
+  var appHost = scriptTag ? new URL(scriptTag.src).origin : window.location.origin;
+  var apiUrl = appHost + `/api`;
+
+  class AdaptIQWidget {
+    constructor() {
+      this.storeId = null;
+      this.currentProductId = null;
+      this.config = null;
+      if (typeof window !== 'undefined') {
+        window.adaptIqInstance = this;
+      }
+      this.init();
+    }
+
+    async init() {
+      let e = document.currentScript || document.querySelector(`script[data-store-id]`);
+      this.storeId = window.location.hostname.includes('.myshopify.com') 
+        ? window.location.hostname.replace('.myshopify.com', '') 
+        : (e && e.getAttribute(`data-store-id`) ? e.getAttribute(`data-store-id`) : `store_123`);
+      
+      let t = `clothing_101`;
+      if (window.meta && window.meta.product && window.meta.product.id) {
+        t = String(window.meta.product.id);
+      } else if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta && window.ShopifyAnalytics.meta.product && window.ShopifyAnalytics.meta.product.id) {
+        t = String(window.ShopifyAnalytics.meta.product.id);
+      } else {
+        let e = document.querySelector(`meta[property="adaptiq:product_id"]`);
+        if (e) t = e.getAttribute(`content`);
+      }
+      this.currentProductId = t;
+
+      try {
+        let e = await fetch(`${apiUrl}/config?storeId=${this.storeId}`);
+        if (!e.ok) throw Error(`Failed to load AdaptIQ config`);
+        this.config = await e.json();
+        
+        this.trackEvent(`page_view`, { path: window.location.pathname, productId: this.currentProductId });
+        let ctx = this.extractContext();
+        
+        if (this.config.features.adaptive) await this.applyAdaptiveStorefront(ctx);
+        if (this.config.features.recommendations) await this.renderRecommendations();
+        if (this.config.features.bundles) await this.renderBundles();
+        if (this.config.features.search) this.initAISearch();
+      } catch (err) {
+        console.error(`[AdaptIQ] Initialization failed:`, err);
+      }
+    }
+
+    extractContext() {
+      return window.adaptIqMockContext ? window.adaptIqMockContext : {
+        referrer: document.referrer || ``,
+        userAgent: navigator.userAgent || ``,
+        speed: navigator.connection ? navigator.connection.effectiveType : `unknown`,
+        urlParams: window.location.search
+      };
+    }
+
+    async applyAdaptiveStorefront(e) {
+      try {
+        let t = await fetch(`${apiUrl}/ai/adaptive`, {
+          method: `POST`,
+          headers: { "Content-Type": `application/json` },
+          body: JSON.stringify({ storeId: this.storeId, context: e })
+        });
+        if (!t.ok) throw Error(`Failed to fetch adaptive copy`);
+        let n = await t.json();
+        let i = document.getElementById(`hero-headline`), a = document.getElementById(`hero-subtext`);
+        if (i) i.innerText = n.headline;
+        if (a) a.innerText = n.subtext;
+        if (this.config && this.config.theme && n.primaryColor) {
+          this.config.theme.primaryColor = n.primaryColor;
+        }
+      } catch (err) {
+        console.error(`[AdaptIQ] Failed to apply adaptive storefront:`, err);
+      }
+    }
+
+    async renderRecommendations() {
+      let e = document.getElementById(`adaptiq-recommendations`);
+      if (!e) {
+        e = document.createElement(`div`);
+        e.id = `adaptiq-recommendations`;
+        let t = document.querySelector(`main`) || document.querySelector(`#MainContent`) || document.querySelector(`.product-details`) || document.body;
+        t === document.body || t.tagName.toLowerCase() === `main` ? t.appendChild(e) : t.parentNode.insertBefore(e, t.nextSibling);
+      }
+      try {
+        let t = await (await fetch(`${apiUrl}/recommendations?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();
+        if (!t.products || t.products.length === 0) return;
+        let n = this.config.theme?.primaryColor || `#7c6dfa`;
+        e.innerHTML = `
+          <div class="adaptiq-widget-container">
+            <div class="adaptiq-widget-title" style="color: ${n};">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              ${t.title || `Precision Recommendations`}
+            </div>
+            <div class="adaptiq-product-grid">
+              ${t.products.map(p => `
+                <div class="adaptiq-product-card" data-id="${p.id}">
+                  <div class="adaptiq-product-image-container">
+                    <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
                   </div>
+                  <h4 class="adaptiq-product-name">${p.name}</h4>
+                  <p class="adaptiq-product-price" style="color: ${n};">${p.price}</p>
                 </div>
-              `).join(``)}else t.innerHTML=`<div style="text-align:center; padding:1rem; color:#64748b;">No matching products found.</div>`}catch{t.innerHTML=`<div style="text-align:center; padding:1rem; color:#ef4444;">Search failed.</div>`}},500)}),document.addEventListener(`click`,e=>{n.contains(e.target)||(t.style.display=`none`)})})}};document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,()=>new i):new i})();
+              `).join(``)}
+            </div>
+            <div class="adaptiq-powered-by">Powered by AdaptIQ</div>
+          </div>
+        `;
+        e.querySelectorAll(`.adaptiq-product-card`).forEach(card => {
+          card.addEventListener(`click`, () => {
+            this.trackEvent(`recommendation_click`, { clickedProductId: card.dataset.id, sourceProductId: this.currentProductId });
+            alert(`Navigating to product: ${card.dataset.id}`);
+          });
+        });
+      } catch (err) {
+        console.error(`[AdaptIQ] Failed to load recommendations:`, err);
+      }
+    }
+
+    trackEvent(e, t) {
+      fetch(`${apiUrl}/track`, {
+        method: `POST`,
+        headers: { "Content-Type": `application/json` },
+        body: JSON.stringify({ storeId: this.storeId, event: e, data: t, timestamp: new Date().toISOString() })
+      }).catch(console.error);
+    }
+
+    async renderBundles() {
+      let e = document.getElementById(`adaptiq-bundles`);
+      if (!e) {
+        e = document.createElement(`div`);
+        e.id = `adaptiq-bundles`;
+        let t = document.getElementById(`adaptiq-recommendations`);
+        t ? t.parentNode.insertBefore(e, t) : document.body.appendChild(e);
+      }
+      try {
+        let t = await (await fetch(`${apiUrl}/ai/bundles?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();
+        if (!t.products || t.products.length === 0) return;
+        let n = this.config.theme?.primaryColor || `#7c6dfa`;
+        e.innerHTML = `
+          <div class="adaptiq-widget-container">
+            <div class="adaptiq-widget-title" style="color: ${n};">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              ${t.title || `Frequently Bought Together`}
+            </div>
+            <div class="adaptiq-product-grid">
+              ${t.products.map(p => `
+                <div class="adaptiq-product-card" data-id="${p.id}">
+                  <div class="adaptiq-product-image-container">
+                    <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
+                  </div>
+                  <h4 class="adaptiq-product-name">${p.name}</h4>
+                  <p class="adaptiq-product-price" style="color: #64748b;">${p.price}</p>
+                  <button class="adaptiq-add-btn">Add to Bundle</button>
+                </div>
+              `).join(``)}
+            </div>
+            <div class="adaptiq-powered-by">Powered by AdaptIQ</div>
+          </div>
+        `;
+        e.querySelectorAll(`button`).forEach(btn => {
+          btn.addEventListener(`click`, ev => {
+            ev.stopPropagation();
+            let card = ev.target.closest(`.adaptiq-product-card`);
+            this.trackEvent(`bundle_add`, { productId: card.dataset.id });
+            alert(`Added to bundle!`);
+          });
+        });
+      } catch (err) {
+        console.error(`[AdaptIQ] Failed to load bundles:`, err);
+      }
+    }
+
+    initAISearch() {
+      let inputs = document.querySelectorAll(`input[type="search"], input[id*="search"], input[name*="search"]`);
+      if (inputs.length === 0) return;
+      inputs.forEach(input => {
+        let dropdown = document.createElement(`div`);
+        dropdown.className = `adaptiq-search-dropdown`;
+        let parent = input.parentNode;
+        parent.style.position = `relative`;
+        parent.appendChild(dropdown);
+        let timeout = null;
+        
+        input.addEventListener(`input`, ev => {
+          let query = ev.target.value;
+          if (query.length < 3) {
+            dropdown.style.display = `none`;
+            return;
+          }
+          clearTimeout(timeout);
+          timeout = setTimeout(async () => {
+            dropdown.style.display = `block`;
+            dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#64748b;">AI is searching...</div>`;
+            try {
+              let res = await (await fetch(`${apiUrl}/ai/search?storeId=${this.storeId}&query=${encodeURIComponent(query)}`)).json();
+              if (res.results && res.results.length > 0) {
+                let color = this.config.theme?.primaryColor || `#7c6dfa`;
+                dropdown.innerHTML = res.results.map(p => `
+                  <div style="display:flex; align-items:center; gap:1rem; padding:0.75rem; border-bottom:1px solid #f1f5f9; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                    <img src="${p.image}" style="width:48px; height:48px; object-fit:contain; border-radius:6px; background:#f8fafc; padding:4px;" />
+                    <div style="flex:1">
+                      <div style="font-weight:700; font-size:0.9rem; color:#1e293b;">${p.name}</div>
+                      <div style="color:${color}; font-size:0.85rem; font-weight:600; margin-top:2px;">${p.price}</div>
+                    </div>
+                  </div>
+                `).join(``);
+              } else {
+                dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#64748b; font-weight:500;">No matching products found.</div>`;
+              }
+            } catch {
+              dropdown.innerHTML = `<div style="text-align:center; padding:1rem; color:#ef4444; font-weight:500;">Search failed.</div>`;
+            }
+          }, 400);
+        });
+        
+        document.addEventListener(`click`, ev => {
+          if (!parent.contains(ev.target)) dropdown.style.display = `none`;
+        });
+      });
+    }
+  }
+
+  if (document.readyState === `loading`) {
+    document.addEventListener(`DOMContentLoaded`, () => new AdaptIQWidget());
+  } else {
+    new AdaptIQWidget();
+  }
+})();
