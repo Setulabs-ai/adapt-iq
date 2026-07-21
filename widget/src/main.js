@@ -11,6 +11,12 @@ class AdaptIQWidget {
     this.storeId = null;
     this.currentProductId = null;
     this.config = null;
+    
+    // Expose instance globally so the Playground simulator can trigger it
+    if (typeof window !== 'undefined') {
+      window.adaptIqInstance = this;
+    }
+
     this.init();
   }
 

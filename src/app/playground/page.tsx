@@ -9,6 +9,22 @@ export default function Playground() {
   const [intent, setIntent] = useState("general");
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
+  // Expose the mock context globally so the widget picks it up
+  useEffect(() => {
+    let mockContext = { referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' };
+    if (intent === 'impatient') {
+      mockContext = { referrer: 'https://tiktok.com', userAgent: 'Mobile', speed: '3g', urlParams: '' };
+    } else if (intent === 'budget') {
+      mockContext = { referrer: 'https://facebook.com', userAgent: 'Tablet', speed: '4g', urlParams: '?utm_campaign=clearance' };
+    }
+    (window as any).adaptIqMockContext = mockContext;
+
+    // Force the widget to re-run on the new DOM
+    if ((window as any).adaptIqInstance) {
+      (window as any).adaptIqInstance.init();
+    }
+  }, [intent]);
+
   const personas = [
     {
       id: "impatient",
@@ -161,23 +177,18 @@ export default function Playground() {
                 </div>
               </main>
 
-              <script 
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    window.adaptIqMockContext = ${intent === 'impatient' 
-                      ? JSON.stringify({ referrer: 'https://tiktok.com', userAgent: 'Mobile', speed: '3g', urlParams: '' }) 
-                      : intent === 'loyalist' 
-                      ? JSON.stringify({ referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' }) 
-                      : intent === 'budget' 
-                      ? JSON.stringify({ referrer: 'https://facebook.com', userAgent: 'Tablet', speed: '4g', urlParams: '?utm_campaign=clearance' }) 
-                      : JSON.stringify({ referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' })};
-                  `
-                }}
-              />
+              </main>
+
+              {/* Load widget exactly once at the bottom of the body */}
               <Script 
-                src={`/widget.js?v=${intent}`} 
+                src="/widget.js" 
                 strategy="afterInteractive" 
-                data-store-id="store_123" 
+                data-store-id="store_123"
+                onLoad={() => {
+                  if ((window as any).adaptIqInstance) {
+                    (window as any).adaptIqInstance.init();
+                  }
+                }}
               />
             </div>
           </div>
