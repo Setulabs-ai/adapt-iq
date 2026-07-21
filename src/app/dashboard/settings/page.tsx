@@ -89,6 +89,12 @@ export default function DashboardSettings() {
             </div>
             <div className={styles.sectionBody}>
               <ToggleRow 
+                title="Adaptive Storefront" 
+                description="Dynamically rewrite your hero section based on the visitor's intent."
+                enabled={config?.features?.adaptive}
+                onChange={(v: boolean) => updateFeature('adaptive', v)}
+              />
+              <ToggleRow 
                 title="Precision Recommendations" 
                 description="Show AI product recommendations on product pages."
                 enabled={config?.features?.recommendations}

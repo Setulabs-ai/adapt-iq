@@ -9,6 +9,7 @@ export const mockStoreConfig: Record<string, any> = {
   "store_123": {
     storeName: "Demo Shopify Store",
     features: {
+      adaptive: true,
       recommendations: true,
       bundles: false,
       search: false
