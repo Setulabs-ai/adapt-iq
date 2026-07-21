@@ -23,6 +23,7 @@ export async function GET(request: Request) {
   const config = {
     storeName: data.store_name,
     features: {
+      adaptive: data.feature_adaptive ?? true,
       recommendations: data.feature_recommendations,
       bundles: data.feature_bundles,
       search: data.feature_search
