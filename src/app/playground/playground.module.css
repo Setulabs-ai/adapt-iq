@@ -216,26 +216,66 @@
 .phoneMockup {
   width: 375px;
   height: 750px;
-  border: 14px solid #0f172a;
-  border-radius: 44px;
+  border-radius: 48px;
   position: relative;
   background: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255,255,255,0.1);
+  box-shadow: 0 0 0 12px #0f172a, 0 0 0 14px #334155, 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
+  margin-top: 1rem;
 }
 
-.phoneNotch {
+/* Hardware buttons */
+.phoneVolumeButtons {
   position: absolute;
-  top: 0;
+  top: 120px;
+  left: -16px;
+  width: 4px;
+  height: 100px;
+  background: #334155;
+  border-radius: 4px 0 0 4px;
+}
+.phoneVolumeButtons::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 0;
+  width: 4px;
+  height: 30px;
+  background: #334155;
+  border-radius: 4px 0 0 4px;
+}
+.phonePowerButton {
+  position: absolute;
+  top: 140px;
+  right: -16px;
+  width: 4px;
+  height: 60px;
+  background: #334155;
+  border-radius: 0 4px 4px 0;
+}
+
+.phoneDynamicIsland {
+  position: absolute;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 160px;
-  height: 28px;
-  background: #0f172a;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  z-index: 10;
+  width: 120px;
+  height: 30px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.camera {
+  width: 12px;
+  height: 12px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  box-shadow: inset 0 0 4px rgba(255,255,255,0.1);
 }
 
 .phoneScreen {
@@ -243,47 +283,102 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  color: #000;
+  color: #0f172a;
+  border-radius: 36px;
+  background: #ffffff;
+}
+
+/* Scrollbar hiding for realism */
+.phoneScreen::-webkit-scrollbar {
+  display: none;
+}
+.phoneScreen {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Status Bar */
+.statusBar {
+  padding: 12px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: transparent;
+  z-index: 40;
+}
+.statusIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Store inside phone */
 .storeHeader {
-  padding: 3rem 1.5rem 1rem;
+  padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #fff;
-  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+.hamburger span {
+  width: 20px;
+  height: 2px;
+  background: #0f172a;
+  border-radius: 2px;
 }
 
 .storeLogo {
   font-size: 1.25rem;
   font-weight: 900;
-  letter-spacing: -0.05em;
+  letter-spacing: 0.1em;
   color: #0f172a;
 }
 
-.searchBarWrapper {
+.cartIcon {
+  cursor: pointer;
+}
+
+.searchContainer {
+  padding: 0 1.5rem 1rem;
+  background: #fff;
   position: relative;
-  width: 140px;
 }
 
 .searchIcon {
   position: absolute;
-  left: 8px;
+  left: 36px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
 }
 
-.searchBarWrapper input {
+.searchContainer input {
   width: 100%;
-  padding: 0.4rem 0.5rem 0.4rem 2rem;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
   border-radius: 99px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   outline: none;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.searchContainer input:focus {
+  border-color: #94a3b8;
+  background: #fff;
 }
 
 .storeMain {
@@ -291,56 +386,77 @@
 }
 
 .heroSection {
-  background: #f8fafc;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  border-bottom: 1px solid #e2e8f0;
+  background-image: url('https://images.unsplash.com/photo-1551524559-8af4e6624178?q=80&w=800&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  height: 350px;
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem 1.5rem;
 }
 
-.heroSection h1 {
+.heroSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 10;
+  color: #fff;
+}
+
+.heroContent h1 {
   font-size: 1.8rem;
   font-weight: 800;
   line-height: 1.1;
-  margin-bottom: 0.75rem;
-  color: #0f172a;
-  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
-.heroSection p {
-  font-size: 0.95rem;
-  color: #475569;
+.heroContent p {
+  font-size: 0.9rem;
+  color: #e2e8f0;
 }
 
 .productDisplay {
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
+  background: #fff;
 }
 
 .imageWrapper {
   position: relative;
   margin-bottom: 1.5rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1rem;
 }
 
 .productImage {
   width: 100%;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }
 
 .badges {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: #fff;
-  color: #0f172a;
-  font-size: 0.7rem;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   padding: 0.3rem 0.6rem;
-  border-radius: 99px;
+  border-radius: 4px;
   letter-spacing: 0.05em;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .productInfo {
@@ -348,48 +464,97 @@
   flex-direction: column;
 }
 
-.productHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+.reviews {
+  font-size: 0.8rem;
+  color: #fbbf24;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.reviews span {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.productHeader {
+  margin-bottom: 0.25rem;
 }
 
 .productHeader h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: #0f172a;
   line-height: 1.2;
 }
 
 .price {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: #6366f1;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+}
+
+.variants {
+  margin-bottom: 1.5rem;
+}
+
+.variantTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.sizeGrid {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sizeBox {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.activeSize {
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #fff;
 }
 
 .productDesc {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #64748b;
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
 }
 
 .addToCart {
   width: 100%;
   background: #0f172a;
   color: white;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: 1.2rem;
+  border-radius: 99px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform 0.1s, background 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
 }
 
 .addToCart:active {
   transform: scale(0.98);
+}
+.addToCart:hover {
+  background: #1e293b;
 }
 
 

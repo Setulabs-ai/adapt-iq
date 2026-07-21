@@ -89,35 +89,73 @@ export default function Playground() {
           </div>
           
           <div className={styles.phoneMockup}>
-            <div className={styles.phoneNotch}></div>
+            {/* Realistic iPhone Hardware Details */}
+            <div className={styles.phoneBezel}></div>
+            <div className={styles.phoneDynamicIsland}>
+              <div className={styles.camera}></div>
+            </div>
+            <div className={styles.phoneVolumeButtons}></div>
+            <div className={styles.phonePowerButton}></div>
+
             <div className={styles.phoneScreen} key={intent}>
+              
+              {/* iPhone Status Bar */}
+              <div className={styles.statusBar}>
+                <span className={styles.time}>9:41</span>
+                <div className={styles.statusIcons}>
+                  <Wifi size={14} strokeWidth={3} />
+                  <Battery size={16} strokeWidth={2} />
+                </div>
+              </div>
+
               {/* FakeStore Inside Phone */}
               <header className={styles.storeHeader}>
-                <div className={styles.storeLogo}>Liquid®</div>
-                <div className={styles.searchBarWrapper}>
-                  <Search size={16} className={styles.searchIcon} />
-                  <input type="text" placeholder="Search..." id="store-search" />
+                <div className={styles.hamburger}>
+                  <span></span><span></span><span></span>
+                </div>
+                <div className={styles.storeLogo}>LIQUID</div>
+                <div className={styles.cartIcon}>
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                 </div>
               </header>
 
+              <div className={styles.searchContainer}>
+                <Search size={14} className={styles.searchIcon} />
+                <input type="text" placeholder="Search products..." id="store-search" />
+              </div>
+
               <main className={styles.storeMain}>
                 <div className={styles.heroSection} id="adaptive-hero">
-                  <h1 id="hero-headline">The Ultimate Winter Collection</h1>
-                  <p id="hero-subtext">Engineered for peak performance.</p>
+                  <div className={styles.heroContent}>
+                    <h1 id="hero-headline">The Ultimate Winter Collection</h1>
+                    <p id="hero-subtext">Engineered for peak performance.</p>
+                  </div>
                 </div>
 
                 <div className={styles.productDisplay}>
                   <div className={styles.imageWrapper}>
-                    <img src="https://images.unsplash.com/photo-1565715569485-64931a2938de?q=80&w=600&auto=format&fit=crop" alt="Snowboard" className={styles.productImage} />
+                    <img src="https://cdn.shopify.com/s/files/1/0885/8730/5239/files/Main_046c8230-07ea-4ff7-b12e-a320aa1961e9.jpg" alt="Snowboard" className={styles.productImage} />
                     <div className={styles.badges}>Best Seller</div>
                   </div>
                   
                   <div className={styles.productInfo}>
+                    <div className={styles.reviews}>★★★★★ <span>(128 Reviews)</span></div>
                     <div className={styles.productHeader}>
                       <h2>The Zenith Snowboard</h2>
-                      <p className={styles.price}>$629.00</p>
                     </div>
-                    <p className={styles.productDesc}>Our flagship all-mountain board. Perfect balance of flex and control.</p>
+                    <p className={styles.price}>$629.00</p>
+                    
+                    <div className={styles.variants}>
+                      <div className={styles.variantTitle}>Size</div>
+                      <div className={styles.sizeGrid}>
+                        <div className={styles.sizeBox}>155cm</div>
+                        <div className={`${styles.sizeBox} ${styles.activeSize}`}>158cm</div>
+                        <div className={styles.sizeBox}>162cm</div>
+                      </div>
+                    </div>
+
+                    <p className={styles.productDesc}>Our flagship all-mountain board. Perfect balance of flex and control for riders who demand the best.</p>
+                    
                     <button className={styles.addToCart}>Add to Cart</button>
                   </div>
                 </div>
