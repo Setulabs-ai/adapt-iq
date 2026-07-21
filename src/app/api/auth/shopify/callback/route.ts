@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const appHost = process.env.HOST || "http://localhost:3000";
 
   let accessToken = "mock_access_token";
+  let debugInfo = { accessTokenPrefix: "none", productsSynced: 0, syncError: null as any };
 
   // --- DEV MODE BYPASS ---
   if (!clientId || clientId === "mock_key") {
@@ -111,7 +112,7 @@ export async function GET(request: Request) {
       console.error("[Shopify Auth] ScriptTag injection error:", err);
     }
 
-    let debugInfo = { accessTokenPrefix: accessToken?.substring(0,4), productsSynced: 0, syncError: null as any };
+    debugInfo.accessTokenPrefix = accessToken?.substring(0,4) || "none";
     // --- BULK CATALOG SYNC & WEBHOOKS ---
     try {
       const productsResponse = await fetch(`https://${shop}/admin/api/2024-01/products.json?limit=250`, {
