@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { TrendingUp, Users, MousePointerClick, DollarSign, RefreshCw } from "lucide-react";
-import styles from "./dashboard.module.css";
+import styles from "../dashboard.module.css";
 
 export default function DashboardOverview() {
   const [stats, setStats] = useState<any>(null);
