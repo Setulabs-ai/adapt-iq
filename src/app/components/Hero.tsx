@@ -73,8 +73,8 @@ export default function Hero() {
 
           {/* CTAs */}
           <div className={`reveal delay-3 ${styles.ctas}`}>
-            <a href="#cta" className="btn btn-primary btn-lg">
-              Request a Demo
+            <a href="/playground" className="btn btn-primary btn-lg">
+              See Demo
               <ArrowRight size={18} />
             </a>
             <a href="#how-it-works" className="btn btn-secondary btn-lg">
