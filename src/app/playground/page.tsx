@@ -177,8 +177,6 @@ export default function Playground() {
                 </div>
               </main>
 
-              </main>
-
               {/* Load widget exactly once at the bottom of the body */}
               <Script 
                 src="/widget.js" 
