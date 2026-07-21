@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Script from "next/script";
 import styles from "./playground.module.css";
 import { Info, Smartphone, Wifi, Battery, Clock, ArrowRight, Zap, Target, Search } from "lucide-react";
