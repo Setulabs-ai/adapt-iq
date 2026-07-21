@@ -273,7 +273,7 @@
             </div>
             <div class="adaptiq-product-grid">
               ${t.products.map(p => `
-                <div class="adaptiq-product-card" data-id="${p.id}">
+                <div class="adaptiq-product-card" data-id="${p.id}" data-handle="${p.handle || ''}">
                   <div class="adaptiq-product-image-container">
                     <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
                   </div>
@@ -288,7 +288,11 @@
         e.querySelectorAll(`.adaptiq-product-card`).forEach(card => {
           card.addEventListener(`click`, () => {
             this.trackEvent(`recommendation_click`, { clickedProductId: card.dataset.id, sourceProductId: this.currentProductId });
-            alert(`Navigating to product: ${card.dataset.id}`);
+            if (card.dataset.handle) {
+              window.location.href = '/products/' + card.dataset.handle;
+            } else {
+              alert(`Navigating to product: ${card.dataset.id} (Please reinstall app to sync links)`);
+            }
           });
         });
       } catch (err) {
@@ -326,7 +330,7 @@
             </div>
             <div class="adaptiq-product-grid">
               ${t.products.map(p => `
-                <div class="adaptiq-product-card" data-id="${p.id}">
+                <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}">
                   <div class="adaptiq-product-image-container">
                     <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
                   </div>
@@ -340,11 +344,35 @@
           </div>
         `;
         e.querySelectorAll(`button`).forEach(btn => {
-          btn.addEventListener(`click`, ev => {
+          btn.addEventListener(`click`, async ev => {
             ev.stopPropagation();
             let card = ev.target.closest(`.adaptiq-product-card`);
             this.trackEvent(`bundle_add`, { productId: card.dataset.id });
-            alert(`Added to bundle!`);
+            
+            let originalText = btn.innerText;
+            btn.innerText = "Adding...";
+            btn.style.opacity = 0.7;
+
+            if (card.dataset.variantId) {
+              try {
+                await fetch('/cart/add.js', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ items: [{ id: card.dataset.variantId, quantity: 1 }] })
+                });
+                btn.innerText = "Added!";
+                btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                setTimeout(() => { window.location.href = '/cart'; }, 500);
+              } catch (e) {
+                alert("Failed to add to cart");
+                btn.innerText = originalText;
+                btn.style.opacity = 1;
+              }
+            } else {
+              alert(`Added to bundle! (Please reinstall app to sync cart logic)`);
+              btn.innerText = originalText;
+              btn.style.opacity = 1;
+            }
           });
         });
       } catch (err) {

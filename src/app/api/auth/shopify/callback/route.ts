@@ -56,19 +56,21 @@ export async function GET(request: Request) {
   const storeId = shop.replace('.myshopify.com', ''); 
 
   // Save the access token and shop domain to Supabase
-  const { error: dbError } = await supabase
+  const { data: storeConfig, error: dbError } = await supabase
     .from('store_configs')
     .upsert({
       store_id: storeId,
       store_name: shop,
+      access_token: accessToken,
       feature_recommendations: true,
       feature_bundles: true,
       feature_search: true
-    }, { onConflict: 'store_id' });
+    }, { onConflict: 'store_id' })
+    .select('subscription_active')
+    .single();
 
   if (dbError) {
     console.error("[Shopify Auth] Failed to save config to DB:", dbError.message);
-    // In dev mode we might ignore this if DB doesn't have the exact schema yet
   }
 
   // --- DYNAMIC SCRIPT INJECTOR ---
@@ -126,7 +128,9 @@ export async function GET(request: Request) {
           price: p.variants && p.variants.length > 0 ? `$${p.variants[0].price}` : null,
           image: p.image?.src || null,
           description: p.body_html || null,
-          tags: p.tags ? p.tags.split(',').map((t: string) => t.trim()) : []
+          tags: p.tags ? p.tags.split(',').map((t: string) => t.trim()) : [],
+          handle: p.handle || null,
+          variant_id: p.variants && p.variants.length > 0 ? String(p.variants[0].id) : null
         }));
         
         if (products.length > 0) {
@@ -178,6 +182,9 @@ export async function GET(request: Request) {
     path: '/'
   });
 
-  // Redirect the merchant to the App Dashboard
+  // Redirect the merchant to the Billing Gate or Dashboard
+  if (storeConfig && !storeConfig.subscription_active) {
+    return NextResponse.redirect(`${appHost}/api/billing/charge?shop=${shop}`);
+  }
   return NextResponse.redirect(`${appHost}/dashboard`);
 }
