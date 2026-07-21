@@ -47,7 +47,7 @@ export default function Playground() {
       name: "The Discount Hunter",
       description: "Highly price-sensitive. Browsing through a Facebook Ads retargeting link. Looking for a deal.",
       metrics: { speed: "4G (Good)", time: "Weekend", device: "Tablet" },
-      active: intent === "discount",
+      active: intent === "budget",
       intentTag: "budget" // maps to the widget intent logic
     }
   ];
