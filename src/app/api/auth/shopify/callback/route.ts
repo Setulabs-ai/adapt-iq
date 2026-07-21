@@ -59,9 +59,7 @@ export async function GET(request: Request) {
     .from('store_configs')
     .upsert({
       store_id: storeId,
-      shop_domain: shop,
-      access_token: accessToken,
-      feature_adaptive: true,
+      store_name: shop,
       feature_recommendations: true,
       feature_bundles: true,
       feature_search: true
