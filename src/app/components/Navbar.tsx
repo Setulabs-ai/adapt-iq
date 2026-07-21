@@ -45,11 +45,11 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className={styles.actions}>
-          <a href="/dashboard/settings" className="btn btn-secondary btn-sm">
-            Go to Dashboard
+          <a href="/login" className="btn btn-secondary btn-sm" style={{ border: 'none', background: 'transparent' }}>
+            Login
           </a>
-          <a href="/playground" className="btn btn-primary btn-sm">
-            Try Interactive Demo
+          <a href="/install" className="btn btn-primary btn-sm">
+            Install App
           </a>
         </div>
 
@@ -77,11 +77,11 @@ export default function Navbar() {
             </a>
           ))}
           <div className={styles.mobileCtas}>
-            <a href="/dashboard/settings" className="btn btn-secondary btn-sm w-full" style={{ justifyContent: "center" }}>
-              Go to Dashboard
+            <a href="/login" className="btn btn-secondary btn-sm w-full" style={{ justifyContent: "center", border: 'none', background: 'transparent' }}>
+              Login
             </a>
-            <a href="/playground" className="btn btn-primary btn-sm w-full" style={{ justifyContent: "center" }}>
-              Try Interactive Demo
+            <a href="/install" className="btn btn-primary btn-sm w-full" style={{ justifyContent: "center" }}>
+              Install App
             </a>
           </div>
         </div>

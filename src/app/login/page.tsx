@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BrainCircuit } from 'lucide-react';
 import styles from './login.module.css';
-import styles from './login.module.css';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
