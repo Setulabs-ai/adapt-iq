@@ -20,15 +20,40 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   }
 
+  // Count total page views
+  const { count: views } = await supabase
+    .from('analytics')
+    .select('*', { count: 'exact', head: true })
+    .eq('store_id', storeId)
+    .eq('event_type', 'page_view');
+
+  // Count total recommendation clicks
+  const { count: clicks } = await supabase
+    .from('analytics')
+    .select('*', { count: 'exact', head: true })
+    .eq('store_id', storeId)
+    .eq('event_type', 'recommendation_click');
+
+  // Fetch recent events
+  const { data: recentEvents } = await supabase
+    .from('analytics')
+    .select('event_type, product_id, created_at')
+    .eq('store_id', storeId)
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  const ctr = views ? ((clicks || 0) / views * 100).toFixed(1) + '%' : "0%";
+  const revenueLift = "$" + ((clicks || 0) * 3.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return NextResponse.json({
-    views: 12450,
-    clicks: 3840,
-    ctr: "30.8%",
-    revenueLift: "$4,250",
-    recentEvents: [
-      { event: "recommendation_click", product: "The Collection Snowboard: Oxygen", time: "2 mins ago" },
-      { event: "page_view", product: "The Collection Snowboard: Liquid", time: "5 mins ago" },
-      { event: "recommendation_click", product: "The 3p Fulfilled Snowboard", time: "12 mins ago" }
-    ]
+    views: views || 0,
+    clicks: clicks || 0,
+    ctr,
+    revenueLift,
+    recentEvents: (recentEvents || []).map(e => ({
+      event: e.event_type,
+      product: e.product_id || 'Unknown',
+      time: new Date(e.created_at).toLocaleTimeString()
+    }))
   });
 }

@@ -1,0 +1,174 @@
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #0f172a;
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+.controlPanel {
+  width: 350px;
+  background-color: #1e293b;
+  border-right: 1px solid #334155;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.panelHeader h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.panelHeader p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.intentSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intentSelector label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.select {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.select:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.storefront {
+  flex: 1;
+  background-color: #ffffff;
+  color: #1e293b;
+  overflow-y: auto;
+  position: relative;
+}
+
+.storeHeader {
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.storeHeader h2 {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.searchBarWrapper input {
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  border: 1px solid #cbd5e1;
+  width: 300px;
+  outline: none;
+}
+
+.storeMain {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 3rem;
+}
+
+.heroSection {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  margin-bottom: 3rem;
+  transition: all 0.5s ease;
+}
+
+.heroSection h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.heroSection p {
+  font-size: 1.2rem;
+  color: #64748b;
+}
+
+.productDisplay {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.productImage {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+.productImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.productInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.productInfo h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 2rem;
+}
+
+.addToCart {
+  background-color: #0f172a;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addToCart:hover {
+  background-color: #334155;
+}
