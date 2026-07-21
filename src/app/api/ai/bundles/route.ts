@@ -69,7 +69,7 @@ export async function GET(request: Request) {
 
     // 4. Map IDs back to full product objects
     const bundledProducts = bundledIds
-      .map((id: string) => mockProducts[id])
+      .map((id: string) => (mockProducts as any)[id])
       .filter(Boolean);
 
     return NextResponse.json({
