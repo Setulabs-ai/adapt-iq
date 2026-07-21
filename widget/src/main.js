@@ -43,13 +43,12 @@ class AdaptIQWidget {
       // 3. Track page view
       this.trackEvent('page_view', { path: window.location.pathname, productId: this.currentProductId });
 
-      // 4. Extract intent from script URL (for Playground Demo)
-      const urlParams = new URL(scriptSrc).searchParams;
-      const intent = urlParams.get('intent');
+      // 4. Extract Real User Context
+      const userContext = this.extractContext();
 
-      // 5. Apply Adaptive Storefront Logic if intent is detected
-      if (intent && intent !== 'general') {
-        await this.applyAdaptiveStorefront(intent);
+      // 5. Apply Adaptive Storefront Logic if enabled
+      if (this.config.features.adaptive) {
+        await this.applyAdaptiveStorefront(userContext);
       }
 
       // 6. Render Features
@@ -70,10 +69,35 @@ class AdaptIQWidget {
     }
   }
 
-  async applyAdaptiveStorefront(intent) {
+  extractContext() {
+    // If running inside the Playground simulator, use the injected mock context
+    if (window.adaptIqMockContext) {
+      return window.adaptIqMockContext;
+    }
+
+    // For Live Production: Extract real browser data
+    return {
+      referrer: document.referrer || '',
+      userAgent: navigator.userAgent || '',
+      speed: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+      urlParams: window.location.search
+    };
+  }
+
+  async applyAdaptiveStorefront(context) {
     try {
-      console.log(`[AdaptIQ] Adapting Storefront for intent: ${intent}`);
-      const res = await fetch(`${API_BASE}/ai/adaptive?intent=${intent}`);
+      console.log(`[AdaptIQ] Adapting Storefront using context:`, context);
+      
+      const res = await fetch(`${API_BASE}/ai/adaptive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          storeId: this.storeId, 
+          context: context 
+        })
+      });
+      
+      if (!res.ok) throw new Error('Failed to fetch adaptive copy');
       const adaptiveData = await res.json();
 
       // Overwrite the DOM dynamically
@@ -85,7 +109,7 @@ class AdaptIQWidget {
       if (subtext) subtext.innerText = adaptiveData.subtext;
       
       // Override primary color for this session
-      if (this.config && this.config.theme) {
+      if (this.config && this.config.theme && adaptiveData.primaryColor) {
         this.config.theme.primaryColor = adaptiveData.primaryColor;
       }
 

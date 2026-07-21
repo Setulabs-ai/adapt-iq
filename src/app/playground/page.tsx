@@ -161,8 +161,21 @@ export default function Playground() {
                 </div>
               </main>
 
+              <script 
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    window.adaptIqMockContext = ${intent === 'impatient' 
+                      ? JSON.stringify({ referrer: 'https://tiktok.com', userAgent: 'Mobile', speed: '3g', urlParams: '' }) 
+                      : intent === 'loyalist' 
+                      ? JSON.stringify({ referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' }) 
+                      : intent === 'budget' 
+                      ? JSON.stringify({ referrer: 'https://facebook.com', userAgent: 'Tablet', speed: '4g', urlParams: '?utm_campaign=clearance' }) 
+                      : JSON.stringify({ referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' })};
+                  `
+                }}
+              />
               <Script 
-                src={`/widget.js?intent=${intent}`} 
+                src={`/widget.js?v=${intent}`} 
                 strategy="afterInteractive" 
                 data-store-id="store_123" 
               />
