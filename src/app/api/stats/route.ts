@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
-import { mockStoreConfig } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const storeId = searchParams.get('storeId');
 
-  if (!storeId || !mockStoreConfig[storeId]) {
+  if (!storeId) {
+    return NextResponse.json({ error: "Missing storeId" }, { status: 400 });
+  }
+
+  // Verify store exists
+  const { data: store, error } = await supabase
+    .from('store_configs')
+    .select('store_id')
+    .eq('store_id', storeId)
+    .single();
+
+  if (error || !store) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   }
 
