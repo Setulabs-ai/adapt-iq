@@ -297,6 +297,30 @@ export default function Playground() {
             </div>
           </div>
 
+          <div className={styles.insightGroup}>
+            <div className={styles.insightHeader}>
+              <Smartphone size={16} className={styles.insightIcon} />
+              <h3>Live Extracted Context</h3>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '1rem', lineHeight: '1.4' }}>
+              This is the raw JSON payload the widget secretly extracts from the browser and sends to our AI backend.
+            </p>
+            
+            <div className={styles.metricCard} style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '1rem' }}>
+              <pre style={{ margin: 0, fontSize: '0.75rem', color: '#38bdf8', overflowX: 'auto', fontFamily: 'monospace' }}>
+                {JSON.stringify(
+                  intent === 'impatient' 
+                    ? { referrer: 'https://tiktok.com', userAgent: 'Mobile', speed: '3g', urlParams: '' }
+                    : intent === 'budget'
+                    ? { referrer: 'https://facebook.com', userAgent: 'Tablet', speed: '4g', urlParams: '?utm_campaign=clearance' }
+                    : { referrer: 'Direct', userAgent: 'Desktop', speed: '4g', urlParams: '' },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
