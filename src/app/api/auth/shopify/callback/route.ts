@@ -35,9 +35,9 @@ export async function GET(request: Request) {
       });
 
       if (!tokenResponse.ok) {
-        const errData = await tokenResponse.json();
-        console.error("[Shopify Auth] Token exchange failed:", errData);
-        return NextResponse.json({ error: "Token exchange failed" }, { status: 400 });
+        const errText = await tokenResponse.text();
+        console.error("[Shopify Auth] Token exchange failed. Status:", tokenResponse.status, "Body:", errText);
+        return NextResponse.json({ error: "Token exchange failed", details: errText }, { status: 400 });
       }
 
       const tokenData = await tokenResponse.json();
