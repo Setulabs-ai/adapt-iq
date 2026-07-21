@@ -1,0 +1,115 @@
+.features {
+  position: relative;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Last two cards centered */
+.grid > :nth-child(4) {
+  grid-column: 1;
+}
+
+.grid > :nth-child(5) {
+  grid-column: 2;
+}
+
+.featureCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 28px;
+}
+
+.featureBadge {
+  margin-bottom: 16px;
+}
+
+.featureTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f0f4ff;
+  margin-bottom: 12px;
+}
+
+.featureDesc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #8a9bb8;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.bullet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #8a9bb8;
+  font-weight: 500;
+}
+
+.bulletDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.metric {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+
+.metricValue {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.metricLabel {
+  font-size: 12px;
+  color: #6b7a9a;
+  font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid > :nth-child(4) {
+    grid-column: auto;
+  }
+
+  .grid > :nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

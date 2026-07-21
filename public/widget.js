@@ -1,0 +1,23 @@
+(function(){var e=document.createElement(`style`);e.textContent=`.adaptiq-widget-container{background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;margin:40px 0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}.adaptiq-widget-title{color:#111827;align-items:center;gap:8px;margin-bottom:20px;font-size:1.25rem;font-weight:600;display:flex}.adaptiq-widget-title svg{width:20px;height:20px}.adaptiq-product-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;display:grid}.adaptiq-product-card{cursor:pointer;background:#fff;border-radius:8px;flex-direction:column;padding:12px;transition:transform .2s,box-shadow .2s;display:flex;box-shadow:0 1px 3px #0000001a}.adaptiq-product-card:hover{transform:translateY(-2px);box-shadow:0 4px 6px #0000001a}.adaptiq-product-image{aspect-ratio:1;object-fit:cover;background:#f3f4f6;border-radius:6px;width:100%;margin-bottom:12px}.adaptiq-product-name{color:#374151;margin:0 0 4px;font-size:.875rem;font-weight:500}.adaptiq-product-price{color:#111827;margin:0;font-size:.875rem;font-weight:600}.adaptiq-powered-by{color:#9ca3af;text-align:right;justify-content:flex-end;align-items:center;gap:4px;margin-top:16px;font-size:.75rem;display:flex}
+/*$vite$:1*/`,document.head.appendChild(e);var t=document.currentScript?document.currentScript.src:window.location.origin,n=new URL(t).origin+`/api`,r=class{constructor(){this.storeId=null,this.currentProductId=null,this.config=null,this.init()}async init(){let e=document.currentScript||document.querySelector(`script[data-store-id]`);this.storeId=e?e.getAttribute(`data-store-id`):`store_123`;let t=`9336993317079`;if(window.meta&&window.meta.product&&window.meta.product.id)t=String(window.meta.product.id);else{let e=document.querySelector(`meta[property="adaptiq:product_id"]`);e&&(t=e.getAttribute(`content`))}this.currentProductId=t;try{let e=await fetch(`${n}/config?storeId=${this.storeId}`);if(!e.ok)throw Error(`Failed to load AdaptIQ config`);this.config=await e.json(),this.trackEvent(`page_view`,{path:window.location.pathname,productId:this.currentProductId}),this.config.features.recommendations&&await this.renderRecommendations()}catch(e){console.error(`[AdaptIQ] Initialization failed:`,e)}}async renderRecommendations(){let e=document.getElementById(`adaptiq-recommendations`);if(!e){e=document.createElement(`div`),e.id=`adaptiq-recommendations`;let t=document.querySelector(`main`)||document.querySelector(`#MainContent`)||document.querySelector(`.product-details`)||document.body;t===document.body||t.tagName.toLowerCase()===`main`?t.appendChild(e):t.parentNode.insertBefore(e,t.nextSibling)}try{let t=await(await fetch(`${n}/recommendations?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();if(!t.products||t.products.length===0)return;let r=this.config.theme?.primaryColor||`#7c6dfa`;e.innerHTML=`
+        <div class="adaptiq-widget-container">
+          <div class="adaptiq-widget-title" style="color: ${r}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+            ${t.title||`Precision Recommendations`}
+          </div>
+          <div class="adaptiq-product-grid">
+            ${t.products.map(e=>`
+              <div class="adaptiq-product-card" data-id="${e.id}">
+                <img src="${e.image}" alt="${e.name}" class="adaptiq-product-image" />
+                <h4 class="adaptiq-product-name">${e.name}</h4>
+                <p class="adaptiq-product-price">${e.price}</p>
+              </div>
+            `).join(``)}
+          </div>
+          <div class="adaptiq-powered-by">
+            Powered by AdaptIQ
+          </div>
+        </div>
+      `,e.querySelectorAll(`.adaptiq-product-card`).forEach(e=>{e.addEventListener(`click`,()=>{this.trackEvent(`recommendation_click`,{clickedProductId:e.dataset.id,sourceProductId:this.currentProductId}),alert(`Navigating to product: ${e.dataset.id}`)})})}catch(e){console.error(`[AdaptIQ] Failed to load recommendations:`,e)}}trackEvent(e,t){fetch(`${n}/track`,{method:`POST`,headers:{"Content-Type":`application/json`},body:JSON.stringify({storeId:this.storeId,event:e,data:t,timestamp:new Date().toISOString()})}).catch(console.error)}};document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,()=>new r):new r})();
