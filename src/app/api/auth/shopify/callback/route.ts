@@ -71,8 +71,33 @@ export async function GET(request: Request) {
     // In dev mode we might ignore this if DB doesn't have the exact schema yet
   }
 
-  // Optional: Here you would normally register Webhooks with Shopify using the access token
-  // e.g., POST https://${shop}/admin/api/2024-01/webhooks.json
+  // --- DYNAMIC SCRIPT INJECTOR ---
+  // Register the widget.js to load on the merchant's storefront automatically
+  if (accessToken !== "mock_access_token") {
+    try {
+      const scriptTagResponse = await fetch(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken,
+        },
+        body: JSON.stringify({
+          script_tag: {
+            event: "onload",
+            src: `${appHost}/widget.js`
+          }
+        })
+      });
+
+      if (!scriptTagResponse.ok) {
+        console.error("[Shopify Auth] Failed to inject ScriptTag:", await scriptTagResponse.json());
+      } else {
+        console.log("[Shopify Auth] Successfully injected widget.js into", shop);
+      }
+    } catch (err) {
+      console.error("[Shopify Auth] ScriptTag injection error:", err);
+    }
+  }
 
   // Redirect the merchant to the App Dashboard (via App Bridge in a real embedded app)
   // Since this is a standalone demo, we redirect to our local dashboard
