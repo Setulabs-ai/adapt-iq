@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     // 3. Call OpenAI with JSON mode
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Generate the adapted storefront copy." }
