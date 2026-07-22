@@ -59,6 +59,7 @@ export async function GET(request: Request) {
   const revTrend = "+0.0%";
 
   return NextResponse.json({
+    storeId: storeId,
     views: views || 0,
     clicks: clicks || 0,
     ctr: ctr + '%',

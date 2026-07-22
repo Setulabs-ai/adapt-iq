@@ -30,6 +30,11 @@ export async function GET(request: Request) {
     },
     theme: {
       primaryColor: data.theme_primary_color
+    },
+    theme_config: data.theme_config || {
+      primaryColor: "#7c6dfa",
+      borderRadius: "16",
+      layout: "grid"
     }
   };
 
@@ -50,6 +55,7 @@ export async function POST(request: Request) {
     if (updates.features?.recommendations !== undefined) dbUpdates.feature_recommendations = updates.features.recommendations;
     if (updates.features?.bundles !== undefined) dbUpdates.feature_bundles = updates.features.bundles;
     if (updates.features?.search !== undefined) dbUpdates.feature_search = updates.features.search;
+    if (updates.theme_config) dbUpdates.theme_config = updates.theme_config;
 
     const { data, error } = await supabase
       .from('store_configs')

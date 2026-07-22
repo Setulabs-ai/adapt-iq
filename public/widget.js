@@ -182,6 +182,7 @@
       this.storeId = null;
       this.currentProductId = null;
       this.config = null;
+      this.themeConfig = { primaryColor: '#7c6dfa', borderRadius: '16', layout: 'grid' };
       if (typeof window !== 'undefined') {
         window.adaptIqInstance = this;
       }
@@ -209,6 +210,9 @@
         let e = await fetch(`${apiUrl}/config?storeId=${this.storeId}`);
         if (!e.ok) throw Error(`Failed to load AdaptIQ config`);
         this.config = await e.json();
+        if (this.config.theme_config) {
+          this.themeConfig = this.config.theme_config;
+        }
         
         this.trackEvent(`page_view`, { path: window.location.pathname, productId: this.currentProductId });
         let ctx = this.extractContext();
@@ -262,9 +266,10 @@
       try {
         let t = await (await fetch(`${apiUrl}/recommendations?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();
         if (!t.products || t.products.length === 0) return;
-        let n = this.config.theme?.primaryColor || `#7c6dfa`;
+        let n = this.themeConfig.primaryColor || `#7c6dfa`;
+        let br = this.themeConfig.borderRadius || `16`;
         e.innerHTML = `
-          <div class="adaptiq-widget-container">
+          <div class="adaptiq-widget-container" style="border-radius: ${br}px;">
             <div class="adaptiq-widget-title" style="color: ${n};">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -273,8 +278,8 @@
             </div>
             <div class="adaptiq-product-grid">
               ${t.products.map(p => `
-                <div class="adaptiq-product-card" data-id="${p.id}" data-handle="${p.handle || ''}">
-                  <div class="adaptiq-product-image-container">
+                <div class="adaptiq-product-card" data-id="${p.id}" data-handle="${p.handle || ''}" style="border-radius: ${br}px;">
+                  <div class="adaptiq-product-image-container" style="border-radius: ${Math.max(0, br - 4)}px;">
                     <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
                   </div>
                   <h4 class="adaptiq-product-name">${p.name}</h4>
@@ -319,9 +324,10 @@
       try {
         let t = await (await fetch(`${apiUrl}/ai/bundles?storeId=${this.storeId}&productId=${this.currentProductId}`)).json();
         if (!t.products || t.products.length === 0) return;
-        let n = this.config.theme?.primaryColor || `#7c6dfa`;
+        let n = this.themeConfig.primaryColor || `#7c6dfa`;
+        let br = this.themeConfig.borderRadius || `16`;
         e.innerHTML = `
-          <div class="adaptiq-widget-container">
+          <div class="adaptiq-widget-container" style="border-radius: ${br}px;">
             <div class="adaptiq-widget-title" style="color: ${n};">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -330,13 +336,13 @@
             </div>
             <div class="adaptiq-product-grid">
               ${t.products.map(p => `
-                <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}">
-                  <div class="adaptiq-product-image-container">
+                <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px;">
+                  <div class="adaptiq-product-image-container" style="border-radius: ${Math.max(0, br - 4)}px;">
                     <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
                   </div>
                   <h4 class="adaptiq-product-name">${p.name}</h4>
                   <p class="adaptiq-product-price" style="color: #64748b;">${p.price}</p>
-                  <button class="adaptiq-add-btn">Add to Bundle</button>
+                  <button class="adaptiq-add-btn" style="border-radius: ${br}px;">Add to Bundle</button>
                 </div>
               `).join(``)}
             </div>
