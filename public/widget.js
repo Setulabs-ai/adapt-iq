@@ -405,7 +405,12 @@
 
     async renderCartUpsells() {
       let e = document.getElementById(`adaptiq-cart-upsells`);
+      let n = this.themeConfig.primaryColor || `#7c6dfa`;
+      let br = this.themeConfig.borderRadius || `16`;
+      
+      let isNew = false;
       if (!e) {
+        isNew = true;
         e = document.createElement(`div`);
         e.id = `adaptiq-cart-upsells`;
         
@@ -423,6 +428,27 @@
             return;
           }
         }
+
+        // Show instant sleek loader to prevent UI jumping
+        e.innerHTML = `
+          <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
+            <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Analyzing your cart...
+              </span>
+            </div>
+            <div class="adaptiq-accordion-content" style="display: block; text-align: center; padding: 2rem 0;">
+              <style>
+                @keyframes adaptiq-spin { 100% { transform: rotate(360deg); } }
+                .adaptiq-spinner { animation: adaptiq-spin 1s linear infinite; color: ${n}; opacity: 0.5; }
+              </style>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="adaptiq-spinner">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </div>
+          </div>
+        `;
       }
       
       try {
@@ -431,6 +457,14 @@
         let cartData = await cartRes.json();
         if (!cartData.items || cartData.items.length === 0) {
           e.innerHTML = '';
+          return;
+        }
+
+        // Smart caching to eliminate flickering
+        const cartSignature = cartData.items.map(i => i.id + ':' + i.quantity).join(',');
+        if (this.lastCartSignature === cartSignature && this.lastCartUpsellHTML) {
+          e.innerHTML = this.lastCartUpsellHTML;
+          this.attachCartUpsellEvents(e);
           return;
         }
 
@@ -445,10 +479,7 @@
           return;
         }
 
-        let n = this.themeConfig.primaryColor || `#7c6dfa`;
-        let br = this.themeConfig.borderRadius || `16`;
-        
-        e.innerHTML = `
+        let newHTML = `
           <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
             <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
               <span style="display: flex; align-items: center; gap: 8px;">
@@ -457,7 +488,7 @@
               </span>
               <span class="adaptiq-toggle-icon" style="font-size: 1.2rem; color: #64748b;">−</span>
             </div>
-            <div class="adaptiq-accordion-content" style="display: block;">
+            <div class="adaptiq-accordion-content" style="display: block; transition: all 0.3s ease;">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 ${t.products.map(p => `
                   <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px; padding: 12px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;">
@@ -473,16 +504,29 @@
             </div>
           </div>
         `;
+        
+        e.innerHTML = newHTML;
+        this.lastCartSignature = cartSignature;
+        this.lastCartUpsellHTML = newHTML;
+        this.attachCartUpsellEvents(e);
+        
+      } catch (err) {
+        if (isNew && e) e.innerHTML = '';
+      }
+    }
 
+    attachCartUpsellEvents(e) {
         let header = e.querySelector('.adaptiq-accordion-header');
         let content = e.querySelector('.adaptiq-accordion-content');
         let icon = e.querySelector('.adaptiq-toggle-icon');
         
-        header.addEventListener('click', () => {
-          let isOpen = content.style.display === 'block';
-          content.style.display = isOpen ? 'none' : 'block';
-          icon.innerHTML = isOpen ? '+' : '−';
-        });
+        if (header && content && icon) {
+          header.addEventListener('click', () => {
+            let isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            icon.innerHTML = isOpen ? '+' : '−';
+          });
+        }
 
         e.querySelectorAll(`button`).forEach(btn => {
           btn.addEventListener(`click`, async ev => {

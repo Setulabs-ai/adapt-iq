@@ -98,6 +98,36 @@ Return ONLY a raw JSON array of the 2 product IDs you selected, like this: ["id1
 
   } catch (err: any) {
     console.error("[Cart Upsell] Error:", err.message);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    
+    // Graceful fallback to ensure the UI NEVER breaks or shows a 500 error
+    try {
+      const { searchParams } = new URL(request.url);
+      const storeId = searchParams.get('storeId');
+      const body = await request.json().catch(() => ({}));
+      const cartItems = body.items || [];
+      const cartProductIds = cartItems.map((item: any) => item.product_id?.toString());
+      
+      const { data: dbProducts } = await supabase
+        .from('products')
+        .select('*')
+        .eq('store_id', storeId);
+        
+      if (dbProducts) {
+        const fallbackProducts = dbProducts
+          .filter(p => !cartProductIds.includes(p.id))
+          .slice(0, 2);
+          
+        if (fallbackProducts.length > 0) {
+          return NextResponse.json({
+            title: "Don't Forget These!",
+            products: fallbackProducts
+          });
+        }
+      }
+    } catch (fallbackErr) {
+      // Ignore fallback errors
+    }
+    
+    return NextResponse.json({ products: [] });
   }
 }
