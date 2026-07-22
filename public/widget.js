@@ -404,27 +404,38 @@
     }
 
     async renderCartUpsells() {
+      console.log("[AdaptIQ] renderCartUpsells() triggered.");
       try {
         // Step 1: Fetch cart data FIRST before touching the DOM (prevents flickering)
         let cartRes = await fetch('/cart.js?adaptiq_ignore=true');
-        if (!cartRes.ok) return;
+        if (!cartRes.ok) {
+          console.warn("[AdaptIQ] Failed to fetch /cart.js");
+          return;
+        }
         let cartData = await cartRes.json();
+        console.log("[AdaptIQ] Cart data:", cartData.items.length, "items");
         
         let existingWidget = document.getElementById(`adaptiq-cart-upsells`);
 
         if (!cartData.items || cartData.items.length === 0) {
+          console.log("[AdaptIQ] Cart is empty, removing widget.");
           if (existingWidget) existingWidget.remove();
           return;
         }
 
         const cartSignature = cartData.items.map(i => i.id + ':' + i.quantity).join(',');
         const isCacheHit = (this.lastCartSignature === cartSignature && this.lastCartUpsellHTML);
+        console.log("[AdaptIQ] Cache hit?", isCacheHit);
 
-        // Step 2: Establish the injection target
-        let targetFooter = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
-        let targetDrawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
+        // Step 2: Establish the injection target (MUST be visible to avoid injecting into hidden fallback carts)
+        const findVisible = (selector) => Array.from(document.querySelectorAll(selector)).find(el => el.offsetParent !== null || window.getComputedStyle(el).display !== 'none');
+        
+        let targetFooter = findVisible('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
+        let targetDrawer = findVisible('cart-drawer, .drawer__inner, #CartDrawer, .cart');
         let targetMain = window.location.pathname.includes('/cart') ? (document.querySelector('main') || document.body) : null;
         
+        console.log("[AdaptIQ] Targets - Footer:", !!targetFooter, "Drawer:", !!targetDrawer, "Main:", !!targetMain);
+
         let insertNode = existingWidget;
         
         if (!insertNode) {
@@ -433,13 +444,19 @@
           
           if (targetFooter && targetFooter.parentNode) {
             targetFooter.parentNode.insertBefore(insertNode, targetFooter);
+            console.log("[AdaptIQ] Injected before Footer.");
           } else if (targetDrawer) {
             targetDrawer.appendChild(insertNode);
+            console.log("[AdaptIQ] Injected inside Drawer.");
           } else if (targetMain) {
             targetMain.appendChild(insertNode);
+            console.log("[AdaptIQ] Injected inside Main.");
           } else {
+            console.warn("[AdaptIQ] CRITICAL: Nowhere to inject widget!");
             return; // Nowhere to inject
           }
+        } else {
+          console.log("[AdaptIQ] Existing widget found in DOM.");
         }
 
         let n = this.themeConfig.primaryColor || `#7c6dfa`;
@@ -489,8 +506,9 @@
           // CRITICAL FIX: If the Shopify theme completely wiped and replaced the cart HTML 
           // while we were waiting for the AI (destroying our insertNode), we MUST re-inject it!
           if (!document.contains(insertNode)) {
-            let reTargetFooter = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
-            let reTargetDrawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
+            const findVisibleRe = (selector) => Array.from(document.querySelectorAll(selector)).find(el => el.offsetParent !== null || window.getComputedStyle(el).display !== 'none');
+            let reTargetFooter = findVisibleRe('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
+            let reTargetDrawer = findVisibleRe('cart-drawer, .drawer__inner, #CartDrawer, .cart');
             if (reTargetFooter && reTargetFooter.parentNode) {
               reTargetFooter.parentNode.insertBefore(insertNode, reTargetFooter);
             } else if (reTargetDrawer) {
@@ -675,6 +693,7 @@
         if (shouldRender) {
           clearTimeout(debounceRender);
           debounceRender = setTimeout(() => {
+            console.log("[AdaptIQ] MutationObserver triggered shouldRender!");
             if (!document.getElementById('adaptiq-cart-upsells')) {
               this.renderCartUpsells();
             }
