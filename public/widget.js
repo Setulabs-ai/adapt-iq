@@ -404,114 +404,117 @@
     }
 
     async renderCartUpsells() {
-      let e = document.getElementById(`adaptiq-cart-upsells`);
-      let n = this.themeConfig.primaryColor || `#7c6dfa`;
-      let br = this.themeConfig.borderRadius || `16`;
-      
-      let isNew = false;
-      if (!e) {
-        isNew = true;
-        e = document.createElement(`div`);
-        e.id = `adaptiq-cart-upsells`;
-        
-        let footer = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
-        if (footer && footer.parentNode) {
-          footer.parentNode.insertBefore(e, footer);
-        } else {
-          let drawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
-          if (drawer) {
-            drawer.appendChild(e);
-          } else if (window.location.pathname.includes('/cart')) {
-            let main = document.querySelector('main') || document.body;
-            main.appendChild(e);
-          } else {
-            return;
-          }
-        }
-
-        // Show instant sleek loader to prevent UI jumping
-        e.innerHTML = `
-          <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
-            <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Analyzing your cart...
-              </span>
-            </div>
-            <div class="adaptiq-accordion-content" style="display: block; text-align: center; padding: 2rem 0;">
-              <style>
-                @keyframes adaptiq-spin { 100% { transform: rotate(360deg); } }
-                .adaptiq-spinner { animation: adaptiq-spin 1s linear infinite; color: ${n}; opacity: 0.5; }
-              </style>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="adaptiq-spinner">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-              </svg>
-            </div>
-          </div>
-        `;
-      }
-      
       try {
+        // Step 1: Fetch cart data FIRST before touching the DOM (prevents flickering)
         let cartRes = await fetch('/cart.js?adaptiq_ignore=true');
         if (!cartRes.ok) return;
         let cartData = await cartRes.json();
+        
+        let existingWidget = document.getElementById(`adaptiq-cart-upsells`);
+
         if (!cartData.items || cartData.items.length === 0) {
-          e.innerHTML = '';
+          if (existingWidget) existingWidget.remove();
           return;
         }
 
-        // Smart caching to eliminate flickering
         const cartSignature = cartData.items.map(i => i.id + ':' + i.quantity).join(',');
-        if (this.lastCartSignature === cartSignature && this.lastCartUpsellHTML) {
-          e.innerHTML = this.lastCartUpsellHTML;
-          this.attachCartUpsellEvents(e);
-          return;
+        const isCacheHit = (this.lastCartSignature === cartSignature && this.lastCartUpsellHTML);
+
+        // Step 2: Establish the injection target
+        let targetFooter = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
+        let targetDrawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
+        let targetMain = window.location.pathname.includes('/cart') ? (document.querySelector('main') || document.body) : null;
+        
+        let insertNode = existingWidget;
+        
+        if (!insertNode) {
+          insertNode = document.createElement(`div`);
+          insertNode.id = `adaptiq-cart-upsells`;
+          
+          if (targetFooter && targetFooter.parentNode) {
+            targetFooter.parentNode.insertBefore(insertNode, targetFooter);
+          } else if (targetDrawer) {
+            targetDrawer.appendChild(insertNode);
+          } else if (targetMain) {
+            targetMain.appendChild(insertNode);
+          } else {
+            return; // Nowhere to inject
+          }
         }
 
-        let t = await (await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: cartData.items })
-        })).json();
+        let n = this.themeConfig.primaryColor || `#7c6dfa`;
+        let br = this.themeConfig.borderRadius || `16`;
 
-        if (!t.products || t.products.length === 0) {
-          e.innerHTML = '';
-          return;
-        }
-
-        let newHTML = `
-          <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
-            <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                ${t.title || `Don't Forget These!`}
-              </span>
-              <span class="adaptiq-toggle-icon" style="font-size: 1.2rem; color: #64748b;">−</span>
-            </div>
-            <div class="adaptiq-accordion-content" style="display: block; transition: all 0.3s ease;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                ${t.products.map(p => `
-                  <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px; padding: 12px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;">
-                    <div style="border-radius: ${Math.max(0, parseInt(br) - 4)}px; background: #f8fafc; padding: 8px; margin-bottom: 10px; flex-grow: 0;">
-                      <img src="${p.image}" alt="${p.name}" style="width: 100%; aspect-ratio: 1; object-fit: contain; mix-blend-mode: multiply;" />
-                    </div>
-                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #1e293b; margin: 0 0 4px; line-height: 1.2;">${p.name}</h4>
-                    <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 10px; font-weight: 500;">${p.price}</p>
-                    <button class="adaptiq-add-btn" style="border-radius: ${br}px; margin-top: auto; padding: 8px; font-size: 0.75rem; width: 100%; background: ${n}; color: white; border: none; font-weight: 600; cursor: pointer;">Add to Cart</button>
-                  </div>
-                `).join(``)}
+        // Step 3: Serve from cache instantly, or show loader and fetch
+        if (isCacheHit) {
+          insertNode.innerHTML = this.lastCartUpsellHTML;
+          this.attachCartUpsellEvents(insertNode);
+        } else {
+          // Show sleek loader only if we have to wait for AI
+          insertNode.innerHTML = `
+            <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
+              <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                  Analyzing your cart...
+                </span>
+              </div>
+              <div class="adaptiq-accordion-content" style="display: block; text-align: center; padding: 2rem 0;">
+                <style>
+                  @keyframes adaptiq-spin { 100% { transform: rotate(360deg); } }
+                  .adaptiq-spinner { animation: adaptiq-spin 1s linear infinite; color: ${n}; opacity: 0.5; }
+                </style>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="adaptiq-spinner">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                </svg>
               </div>
             </div>
-          </div>
-        `;
-        
-        e.innerHTML = newHTML;
-        this.lastCartSignature = cartSignature;
-        this.lastCartUpsellHTML = newHTML;
-        this.attachCartUpsellEvents(e);
-        
+          `;
+
+          let t = await (await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cartData.items })
+          })).json();
+
+          if (!t.products || t.products.length === 0) {
+            insertNode.remove();
+            return;
+          }
+
+          let newHTML = `
+            <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
+              <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                  ${t.title || `Don't Forget These!`}
+                </span>
+                <span class="adaptiq-toggle-icon" style="font-size: 1.2rem; color: #64748b;">−</span>
+              </div>
+              <div class="adaptiq-accordion-content" style="display: block; transition: all 0.3s ease;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  ${t.products.map(p => `
+                    <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px; padding: 12px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;">
+                      <div style="border-radius: ${Math.max(0, parseInt(br) - 4)}px; background: #f8fafc; padding: 8px; margin-bottom: 10px; flex-grow: 0;">
+                        <img src="${p.image}" alt="${p.name}" style="width: 100%; aspect-ratio: 1; object-fit: contain; mix-blend-mode: multiply;" />
+                      </div>
+                      <h4 style="font-size: 0.85rem; font-weight: 600; color: #1e293b; margin: 0 0 4px; line-height: 1.2;">${p.name}</h4>
+                      <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 10px; font-weight: 500;">${p.price}</p>
+                      <button class="adaptiq-add-btn" style="border-radius: ${br}px; margin-top: auto; padding: 8px; font-size: 0.75rem; width: 100%; background: ${n}; color: white; border: none; font-weight: 600; cursor: pointer;">Add to Cart</button>
+                    </div>
+                  `).join(``)}
+                </div>
+              </div>
+            </div>
+          `;
+          
+          insertNode.innerHTML = newHTML;
+          this.lastCartSignature = cartSignature;
+          this.lastCartUpsellHTML = newHTML;
+          this.attachCartUpsellEvents(insertNode);
+        }
       } catch (err) {
-        if (isNew && e) e.innerHTML = '';
+        console.error("[AdaptIQ] Cart Upsell Render Error:", err);
       }
     }
 
@@ -539,7 +542,9 @@
             btn.style.opacity = '0.7';
 
             try {
-              let res = await fetch('/cart/add.js?adaptiq_ignore=true', {
+              // Crucial: Removing adaptiq_ignore=true so the Shopify theme's interceptors 
+              // detect this as a valid add-to-cart request and naturally refresh the cart drawer!
+              let res = await fetch('/cart/add.js', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -556,11 +561,9 @@
                   btn.style.opacity = '1';
                 }, 2000);
                 
-                // Dispatch events to notify Shopify theme to update cart
+                // Backup manual event dispatching for older themes
                 document.documentElement.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
-                document.documentElement.dispatchEvent(new CustomEvent('cart:build', { bubbles: true }));
-                document.dispatchEvent(new CustomEvent('ajaxProduct:added'));
-                window.dispatchEvent(new Event('cart-updated')); // Dawn theme
+                document.dispatchEvent(new CustomEvent('ajaxProduct:added', { detail: { product: await res.clone().json().catch(() => ({})) } }));
               } else {
                 throw new Error("Failed");
               }
@@ -586,32 +589,52 @@
     }
 
     listenForCartUpdates() {
-      // Intercept Fetch API
+      // 1. Intercept Fetch API
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
         const response = await originalFetch.apply(this, args);
         if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart') && !args[0].includes('adaptiq_ignore') && !args[0].includes('/api/ai/cart-upsell')) {
-          // If the cart was updated or fetched, wait for the theme to re-render, then inject
-          setTimeout(() => {
-            this.renderCartUpsells();
-          }, 800);
+          setTimeout(() => this.renderCartUpsells(), 800);
         }
         return response;
       };
 
-      // Intercept XHR (for older themes)
+      // 2. Intercept XHR (for older themes)
       const originalXHR = window.XMLHttpRequest.prototype.open;
       const self = this;
       window.XMLHttpRequest.prototype.open = function() {
         this.addEventListener('load', function() {
           if (this.responseURL && this.responseURL.includes('/cart') && !this.responseURL.includes('adaptiq_ignore') && !this.responseURL.includes('/api/ai/cart-upsell')) {
-            setTimeout(() => {
-              self.renderCartUpsells();
-            }, 800);
+            setTimeout(() => self.renderCartUpsells(), 800);
           }
         });
         originalXHR.apply(this, arguments);
       };
+
+      // 3. MutationObserver to aggressively inject when Cart Drawer opens instantly (prevents "doesn't show up")
+      const observer = new MutationObserver((mutations) => {
+        let shouldRender = false;
+        for (let mutation of mutations) {
+          if (mutation.addedNodes.length > 0) {
+            mutation.addedNodes.forEach(node => {
+              if (node.nodeType === 1) {
+                if (node.matches && node.matches('.drawer__footer, .cart-drawer__footer, #CartDrawer, cart-drawer')) {
+                  shouldRender = true;
+                }
+                if (node.querySelector && node.querySelector('.drawer__footer, .cart-drawer__footer, #CartDrawer')) {
+                  shouldRender = true;
+                }
+              }
+            });
+          }
+        }
+        if (shouldRender) {
+          if (!document.getElementById('adaptiq-cart-upsells')) {
+            this.renderCartUpsells();
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
     }
 
     initAISearch() {
