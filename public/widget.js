@@ -408,22 +408,31 @@
       if (!e) {
         e = document.createElement(`div`);
         e.id = `adaptiq-cart-upsells`;
-        let t = null;
-        if (window.location.pathname.includes('/cart')) {
-          t = document.querySelector('.cart') || document.querySelector('#cart') || document.querySelector('main') || document.body;
+        
+        let footer = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
+        if (footer && footer.parentNode) {
+          footer.parentNode.insertBefore(e, footer);
         } else {
-          t = document.querySelector('cart-drawer, #CartDrawer, .drawer__inner, .drawer__scrollable, #mini-cart, .mini-cart, #CartContainer, .cart-drawer__content');
+          let drawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
+          if (drawer) {
+            drawer.appendChild(e);
+          } else if (window.location.pathname.includes('/cart')) {
+            let main = document.querySelector('main') || document.body;
+            main.appendChild(e);
+          } else {
+            return;
+          }
         }
-        
-        if (!t) return; // Exit if no cart container found
-        
-        t.appendChild(e);
       }
+      
       try {
         let cartRes = await fetch('/cart.js?adaptiq_ignore=true');
         if (!cartRes.ok) return;
         let cartData = await cartRes.json();
-        if (!cartData.items || cartData.items.length === 0) return;
+        if (!cartData.items || cartData.items.length === 0) {
+          e.innerHTML = '';
+          return;
+        }
 
         let t = await (await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
           method: 'POST',
@@ -431,33 +440,49 @@
           body: JSON.stringify({ items: cartData.items })
         })).json();
 
-        if (!t.products || t.products.length === 0) return;
+        if (!t.products || t.products.length === 0) {
+          e.innerHTML = '';
+          return;
+        }
 
         let n = this.themeConfig.primaryColor || `#7c6dfa`;
         let br = this.themeConfig.borderRadius || `16`;
+        
         e.innerHTML = `
-          <div class="adaptiq-widget-container" style="border-radius: ${br}px; margin-top: 2rem;">
-            <div class="adaptiq-widget-title" style="color: ${n};">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              ${t.title || `Don't Forget These!`}
+          <div class="adaptiq-accordion open" style="margin: 1.5rem 0; padding: 0 1rem;">
+            <div class="adaptiq-accordion-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: ${n}; font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                ${t.title || `Don't Forget These!`}
+              </span>
+              <span class="adaptiq-toggle-icon" style="font-size: 1.2rem; color: #64748b;">−</span>
             </div>
-            <div class="adaptiq-product-grid">
-              ${t.products.map(p => `
-                <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px;">
-                  <div class="adaptiq-product-image-container" style="border-radius: ${Math.max(0, parseInt(br) - 4)}px;">
-                    <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
+            <div class="adaptiq-accordion-content" style="display: block;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                ${t.products.map(p => `
+                  <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px; padding: 12px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;">
+                    <div style="border-radius: ${Math.max(0, parseInt(br) - 4)}px; background: #f8fafc; padding: 8px; margin-bottom: 10px; flex-grow: 0;">
+                      <img src="${p.image}" alt="${p.name}" style="width: 100%; aspect-ratio: 1; object-fit: contain; mix-blend-mode: multiply;" />
+                    </div>
+                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #1e293b; margin: 0 0 4px; line-height: 1.2;">${p.name}</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 10px; font-weight: 500;">${p.price}</p>
+                    <button class="adaptiq-add-btn" style="border-radius: ${br}px; margin-top: auto; padding: 8px; font-size: 0.75rem; width: 100%; background: ${n}; color: white; border: none; font-weight: 600; cursor: pointer;">Add to Cart</button>
                   </div>
-                  <h4 class="adaptiq-product-name">${p.name}</h4>
-                  <p class="adaptiq-product-price" style="color: #64748b;">${p.price}</p>
-                  <button class="adaptiq-add-btn" style="border-radius: ${br}px;">Add to Cart</button>
-                </div>
-              `).join(``)}
+                `).join(``)}
+              </div>
             </div>
-            <div class="adaptiq-powered-by">Powered by AdaptIQ AI</div>
           </div>
         `;
+
+        let header = e.querySelector('.adaptiq-accordion-header');
+        let content = e.querySelector('.adaptiq-accordion-content');
+        let icon = e.querySelector('.adaptiq-toggle-icon');
+        
+        header.addEventListener('click', () => {
+          let isOpen = content.style.display === 'block';
+          content.style.display = isOpen ? 'none' : 'block';
+          icon.innerHTML = isOpen ? '+' : '−';
+        });
 
         e.querySelectorAll(`button`).forEach(btn => {
           btn.addEventListener(`click`, async ev => {
@@ -470,7 +495,7 @@
             btn.style.opacity = '0.7';
 
             try {
-              let res = await fetch('/cart/add.js', {
+              let res = await fetch('/cart/add.js?adaptiq_ignore=true', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -482,7 +507,16 @@
               });
               if (res.ok) {
                 btn.innerText = "Added!";
-                setTimeout(() => window.location.reload(), 500);
+                setTimeout(() => {
+                  btn.innerText = originalText;
+                  btn.style.opacity = '1';
+                }, 2000);
+                
+                // Dispatch events to notify Shopify theme to update cart
+                document.documentElement.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
+                document.documentElement.dispatchEvent(new CustomEvent('cart:build', { bubbles: true }));
+                document.dispatchEvent(new CustomEvent('ajaxProduct:added'));
+                window.dispatchEvent(new Event('cart-updated')); // Dawn theme
               } else {
                 throw new Error("Failed");
               }
@@ -515,7 +549,7 @@
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
         const response = await originalFetch.apply(this, args);
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart') && !args[0].includes('adaptiq_ignore')) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart') && !args[0].includes('adaptiq_ignore') && !args[0].includes('/api/ai/cart-upsell')) {
           // If the cart was updated or fetched, wait for the theme to re-render, then inject
           setTimeout(() => {
             this.renderCartUpsells();
@@ -524,11 +558,12 @@
         return response;
       };
 
+      // Intercept XHR (for older themes)
       const originalXHR = window.XMLHttpRequest.prototype.open;
       const self = this;
       window.XMLHttpRequest.prototype.open = function() {
         this.addEventListener('load', function() {
-          if (this.responseURL && this.responseURL.includes('/cart') && !this.responseURL.includes('adaptiq_ignore')) {
+          if (this.responseURL && this.responseURL.includes('/cart') && !this.responseURL.includes('adaptiq_ignore') && !this.responseURL.includes('/api/ai/cart-upsell')) {
             setTimeout(() => {
               self.renderCartUpsells();
             }, 800);
