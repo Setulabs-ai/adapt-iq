@@ -471,11 +471,32 @@
             </div>
           `;
 
-          let t = await (await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
+          let aiRes = await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ items: cartData.items })
-          })).json();
+          });
+          
+          let t;
+          if (aiRes.ok) {
+            t = await aiRes.json();
+          } else {
+            // Vercel 504 Timeout or other infrastructure failure
+            console.warn("[AdaptIQ] AI Server timed out. Hiding widget to protect UI.");
+            t = { products: [] };
+          }
+
+          // CRITICAL FIX: If the Shopify theme completely wiped and replaced the cart HTML 
+          // while we were waiting for the AI (destroying our insertNode), we MUST re-inject it!
+          if (!document.contains(insertNode)) {
+            let reTargetFooter = document.querySelector('.drawer__footer, .cart-drawer__footer, cart-drawer .drawer__footer, #CartDrawer .drawer__footer, .cart__footer');
+            let reTargetDrawer = document.querySelector('cart-drawer, .drawer__inner, #CartDrawer, .cart');
+            if (reTargetFooter && reTargetFooter.parentNode) {
+              reTargetFooter.parentNode.insertBefore(insertNode, reTargetFooter);
+            } else if (reTargetDrawer) {
+              reTargetDrawer.appendChild(insertNode);
+            }
+          }
 
           if (!t.products || t.products.length === 0) {
             insertNode.remove();
@@ -619,6 +640,7 @@
       };
 
       // 3. MutationObserver to aggressively inject when Cart Drawer opens instantly
+      let debounceRender;
       const observer = new MutationObserver((mutations) => {
         let shouldRender = false;
         for (let mutation of mutations) {
@@ -642,7 +664,8 @@
                 className.includes('drawer--is-open') || 
                 className.includes('is-open') || 
                 className.includes('cart-drawer-open') ||
-                className.includes('drawer-active')
+                className.includes('drawer-active') ||
+                className.includes('active')
               )) {
                 shouldRender = true;
               }
@@ -650,9 +673,12 @@
           }
         }
         if (shouldRender) {
-          if (!document.getElementById('adaptiq-cart-upsells')) {
-            this.renderCartUpsells();
-          }
+          clearTimeout(debounceRender);
+          debounceRender = setTimeout(() => {
+            if (!document.getElementById('adaptiq-cart-upsells')) {
+              this.renderCartUpsells();
+            }
+          }, 100); // Debounce to avoid slamming the function when theme does massive DOM replacements
         }
       });
       observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
