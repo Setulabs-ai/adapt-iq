@@ -583,9 +583,6 @@
             }
           });
         });
-      } catch (err) {
-        console.error(`[AdaptIQ] Cart Upsells error:`, err);
-      }
     }
 
     listenForCartUpdates() {
