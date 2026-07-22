@@ -163,6 +163,12 @@ export default function DashboardSettings() {
                 enabled={config?.features?.search}
                 onChange={(v: boolean) => updateFeature('search', v)}
               />
+              <ToggleRow 
+                title="In-Cart Upsells" 
+                description="Recommend complementary items when the shopper views their cart."
+                enabled={config?.features?.cartUpsells}
+                onChange={(v: boolean) => updateFeature('cartUpsells', v)}
+              />
             </div>
           </div>
 

@@ -26,7 +26,8 @@ export async function GET(request: Request) {
       adaptive: data.feature_adaptive ?? true,
       recommendations: data.feature_recommendations,
       bundles: data.feature_bundles,
-      search: data.feature_search
+      search: data.feature_search,
+      cartUpsells: data.feature_cart_upsells ?? true
     },
     theme: {
       primaryColor: data.theme_primary_color
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
     if (updates.features?.recommendations !== undefined) dbUpdates.feature_recommendations = updates.features.recommendations;
     if (updates.features?.bundles !== undefined) dbUpdates.feature_bundles = updates.features.bundles;
     if (updates.features?.search !== undefined) dbUpdates.feature_search = updates.features.search;
+    if (updates.features?.cartUpsells !== undefined) dbUpdates.feature_cart_upsells = updates.features.cartUpsells;
     if (updates.theme_config) dbUpdates.theme_config = updates.theme_config;
 
     const { data, error } = await supabase

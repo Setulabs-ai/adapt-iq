@@ -220,6 +220,7 @@
         if (this.config.features.adaptive) await this.applyAdaptiveStorefront(ctx);
         if (this.config.features.recommendations) await this.renderRecommendations();
         if (this.config.features.bundles) await this.renderBundles();
+        if (this.config.features.cartUpsells && window.location.pathname.includes('/cart')) await this.renderCartUpsells();
         if (this.config.features.search) this.initAISearch();
       } catch (err) {
         console.error(`[AdaptIQ] Initialization failed:`, err);
@@ -395,7 +396,106 @@
           });
         });
       } catch (err) {
-        console.error(`[AdaptIQ] Failed to load bundles:`, err);
+        console.error(`[AdaptIQ] Bundles error:`, err);
+      }
+    }
+
+    async renderCartUpsells() {
+      let e = document.getElementById(`adaptiq-cart-upsells`);
+      if (!e) {
+        e = document.createElement(`div`);
+        e.id = `adaptiq-cart-upsells`;
+        let t = document.querySelector(`.cart`) || document.querySelector(`#cart`) || document.querySelector(`main`) || document.body;
+        t === document.body || t.tagName.toLowerCase() === `main` ? t.appendChild(e) : t.parentNode.insertBefore(e, t.nextSibling);
+      }
+      try {
+        let cartRes = await fetch('/cart.js');
+        if (!cartRes.ok) return;
+        let cartData = await cartRes.json();
+        if (!cartData.items || cartData.items.length === 0) return;
+
+        let t = await (await fetch(`${apiUrl}/ai/cart-upsell?storeId=${this.storeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cartData.items })
+        })).json();
+
+        if (!t.products || t.products.length === 0) return;
+
+        let n = this.themeConfig.primaryColor || `#7c6dfa`;
+        let br = this.themeConfig.borderRadius || `16`;
+        e.innerHTML = `
+          <div class="adaptiq-widget-container" style="border-radius: ${br}px; margin-top: 2rem;">
+            <div class="adaptiq-widget-title" style="color: ${n};">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              ${t.title || `Don't Forget These!`}
+            </div>
+            <div class="adaptiq-product-grid">
+              ${t.products.map(p => `
+                <div class="adaptiq-product-card" data-id="${p.id}" data-variant-id="${p.variant_id || ''}" data-handle="${p.handle || ''}" style="border-radius: ${br}px;">
+                  <div class="adaptiq-product-image-container" style="border-radius: ${Math.max(0, parseInt(br) - 4)}px;">
+                    <img src="${p.image}" alt="${p.name}" class="adaptiq-product-image" />
+                  </div>
+                  <h4 class="adaptiq-product-name">${p.name}</h4>
+                  <p class="adaptiq-product-price" style="color: #64748b;">${p.price}</p>
+                  <button class="adaptiq-add-btn" style="border-radius: ${br}px;">Add to Cart</button>
+                </div>
+              `).join(``)}
+            </div>
+            <div class="adaptiq-powered-by">Powered by AdaptIQ AI</div>
+          </div>
+        `;
+
+        e.querySelectorAll(`button`).forEach(btn => {
+          btn.addEventListener(`click`, async ev => {
+            ev.stopPropagation();
+            let card = ev.target.closest(`.adaptiq-product-card`);
+            this.trackEvent(`cart_upsell_add`, { productId: card.dataset.id });
+            
+            let originalText = btn.innerText;
+            btn.innerText = "Adding...";
+            btn.style.opacity = '0.7';
+
+            try {
+              let res = await fetch('/cart/add.js', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  items: [{
+                    id: card.dataset.variantId || card.dataset.id,
+                    quantity: 1
+                  }]
+                })
+              });
+              if (res.ok) {
+                btn.innerText = "Added!";
+                setTimeout(() => window.location.reload(), 500);
+              } else {
+                throw new Error("Failed");
+              }
+            } catch (err) {
+              btn.innerText = "Error";
+              setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+              }, 2000);
+            }
+          });
+        });
+
+        e.querySelectorAll(`.adaptiq-product-card`).forEach(card => {
+          card.addEventListener(`click`, (ev) => {
+            if (ev.target.tagName.toLowerCase() === 'button') return;
+            this.trackEvent(`cart_upsell_click`, { clickedProductId: card.dataset.id });
+            if (card.dataset.handle) {
+              window.location.href = '/products/' + card.dataset.handle;
+            }
+          });
+        });
+      } catch (err) {
+        console.error(`[AdaptIQ] Cart Upsells error:`, err);
       }
     }
 
