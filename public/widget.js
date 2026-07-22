@@ -542,11 +542,9 @@
             btn.style.opacity = '0.7';
 
             try {
-              // Crucial: Removing adaptiq_ignore=true so the Shopify theme's interceptors 
-              // detect this as a valid add-to-cart request and naturally refresh the cart drawer!
               let res = await fetch('/cart/add.js', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                   items: [{
                     id: card.dataset.variantId || card.dataset.id,
@@ -554,16 +552,25 @@
                   }]
                 })
               });
+              
               if (res.ok) {
+                let resData = await res.json();
+                
                 btn.innerText = "Added!";
                 setTimeout(() => {
                   btn.innerText = originalText;
                   btn.style.opacity = '1';
                 }, 2000);
                 
-                // Backup manual event dispatching for older themes
+                // Force Shopify themes to update their carts dynamically
+                // 1. Impulse Theme
+                document.dispatchEvent(new CustomEvent('ajaxProduct:added', { detail: { product: resData } }));
+                // 2. Dawn Theme
+                window.dispatchEvent(new Event('cart-updated'));
+                // 3. Generic Fallbacks
                 document.documentElement.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
-                document.dispatchEvent(new CustomEvent('ajaxProduct:added', { detail: { product: await res.clone().json().catch(() => ({})) } }));
+                document.documentElement.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+                document.documentElement.dispatchEvent(new CustomEvent('cart:change', { bubbles: true }));
               } else {
                 throw new Error("Failed");
               }
@@ -611,7 +618,7 @@
         originalXHR.apply(this, arguments);
       };
 
-      // 3. MutationObserver to aggressively inject when Cart Drawer opens instantly (prevents "doesn't show up")
+      // 3. MutationObserver to aggressively inject when Cart Drawer opens instantly
       const observer = new MutationObserver((mutations) => {
         let shouldRender = false;
         for (let mutation of mutations) {
@@ -627,6 +634,20 @@
               }
             });
           }
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target;
+            if (target.nodeType === 1) {
+              const className = target.className || '';
+              if (typeof className === 'string' && (
+                className.includes('drawer--is-open') || 
+                className.includes('is-open') || 
+                className.includes('cart-drawer-open') ||
+                className.includes('drawer-active')
+              )) {
+                shouldRender = true;
+              }
+            }
+          }
         }
         if (shouldRender) {
           if (!document.getElementById('adaptiq-cart-upsells')) {
@@ -634,7 +655,7 @@
           }
         }
       });
-      observer.observe(document.body, { childList: true, subtree: true });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }
 
     initAISearch() {
