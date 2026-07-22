@@ -220,7 +220,10 @@
         if (this.config.features.adaptive) await this.applyAdaptiveStorefront(ctx);
         if (this.config.features.recommendations) await this.renderRecommendations();
         if (this.config.features.bundles) await this.renderBundles();
-        if (this.config.features.cartUpsells && window.location.pathname.includes('/cart')) await this.renderCartUpsells();
+        if (this.config.features.cartUpsells) {
+          if (window.location.pathname.includes('/cart')) await this.renderCartUpsells();
+          this.listenForCartUpdates();
+        }
         if (this.config.features.search) this.initAISearch();
       } catch (err) {
         console.error(`[AdaptIQ] Initialization failed:`, err);
@@ -405,8 +408,20 @@
       if (!e) {
         e = document.createElement(`div`);
         e.id = `adaptiq-cart-upsells`;
-        let t = document.querySelector(`.cart`) || document.querySelector(`#cart`) || document.querySelector(`main`) || document.body;
-        t === document.body || t.tagName.toLowerCase() === `main` ? t.appendChild(e) : t.parentNode.insertBefore(e, t.nextSibling);
+        let t = document.querySelector(`cart-drawer`) || 
+                document.querySelector(`#CartDrawer`) || 
+                document.querySelector(`.drawer__inner`) || 
+                document.querySelector(`.cart__items`) ||
+                (window.location.pathname.includes('/cart') ? (document.querySelector(`.cart`) || document.querySelector(`#cart`) || document.querySelector(`main`) || document.body) : null);
+        
+        if (!t) return; // Exit if no cart container found
+        
+        // For drawers, append to the end. For main body, append properly.
+        if (t.tagName && t.tagName.toLowerCase() === `main` || t === document.body) {
+          t.appendChild(e);
+        } else {
+          t.appendChild(e); // Append to the bottom of the drawer
+        }
       }
       try {
         let cartRes = await fetch('/cart.js');
@@ -497,6 +512,35 @@
       } catch (err) {
         console.error(`[AdaptIQ] Cart Upsells error:`, err);
       }
+    }
+
+    listenForCartUpdates() {
+      // Intercept Fetch API
+      const originalFetch = window.fetch;
+      window.fetch = async (...args) => {
+        const response = await originalFetch.apply(this, args);
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart')) {
+          // If the cart was updated or fetched, wait for the theme to re-render, then inject
+          setTimeout(() => {
+            this.renderCartUpsells();
+          }, 800);
+        }
+        return response;
+      };
+
+      // Intercept XHR (for older themes)
+      const originalXHR = window.XMLHttpRequest.prototype.open;
+      const self = this;
+      window.XMLHttpRequest.prototype.open = function() {
+        this.addEventListener('load', function() {
+          if (this.responseURL && this.responseURL.includes('/cart')) {
+            setTimeout(() => {
+              self.renderCartUpsells();
+            }, 800);
+          }
+        });
+        originalXHR.apply(this, arguments as any);
+      };
     }
 
     initAISearch() {

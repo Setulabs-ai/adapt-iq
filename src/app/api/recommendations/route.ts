@@ -44,6 +44,7 @@ export async function GET(request: Request) {
 
   const currentProduct = dbProducts.find(p => p.id === productId);
   if (!currentProduct) {
+    // Graceful fallback for mock Shopify test IDs (e.g., clothing_101:1)
     return NextResponse.json({ title: "Precision Recommendations", products: [] });
   }
 
