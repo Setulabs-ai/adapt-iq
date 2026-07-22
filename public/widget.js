@@ -539,7 +539,7 @@
             }, 800);
           }
         });
-        originalXHR.apply(this, arguments as any);
+        originalXHR.apply(this, arguments);
       };
     }
 
