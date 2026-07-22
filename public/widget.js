@@ -408,23 +408,19 @@
       if (!e) {
         e = document.createElement(`div`);
         e.id = `adaptiq-cart-upsells`;
-        let t = document.querySelector(`cart-drawer`) || 
-                document.querySelector(`#CartDrawer`) || 
-                document.querySelector(`.drawer__inner`) || 
-                document.querySelector(`.cart__items`) ||
-                (window.location.pathname.includes('/cart') ? (document.querySelector(`.cart`) || document.querySelector(`#cart`) || document.querySelector(`main`) || document.body) : null);
+        let t = null;
+        if (window.location.pathname.includes('/cart')) {
+          t = document.querySelector('.cart') || document.querySelector('#cart') || document.querySelector('main') || document.body;
+        } else {
+          t = document.querySelector('cart-drawer, #CartDrawer, .drawer__inner, .drawer__scrollable, #mini-cart, .mini-cart, #CartContainer, .cart-drawer__content');
+        }
         
         if (!t) return; // Exit if no cart container found
         
-        // For drawers, append to the end. For main body, append properly.
-        if (t.tagName && t.tagName.toLowerCase() === `main` || t === document.body) {
-          t.appendChild(e);
-        } else {
-          t.appendChild(e); // Append to the bottom of the drawer
-        }
+        t.appendChild(e);
       }
       try {
-        let cartRes = await fetch('/cart.js');
+        let cartRes = await fetch('/cart.js?adaptiq_ignore=true');
         if (!cartRes.ok) return;
         let cartData = await cartRes.json();
         if (!cartData.items || cartData.items.length === 0) return;
@@ -519,7 +515,7 @@
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
         const response = await originalFetch.apply(this, args);
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart')) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('/cart') && !args[0].includes('adaptiq_ignore')) {
           // If the cart was updated or fetched, wait for the theme to re-render, then inject
           setTimeout(() => {
             this.renderCartUpsells();
@@ -528,12 +524,11 @@
         return response;
       };
 
-      // Intercept XHR (for older themes)
       const originalXHR = window.XMLHttpRequest.prototype.open;
       const self = this;
       window.XMLHttpRequest.prototype.open = function() {
         this.addEventListener('load', function() {
-          if (this.responseURL && this.responseURL.includes('/cart')) {
+          if (this.responseURL && this.responseURL.includes('/cart') && !this.responseURL.includes('adaptiq_ignore')) {
             setTimeout(() => {
               self.renderCartUpsells();
             }, 800);
