@@ -25,10 +25,29 @@ export async function GET(request: Request) {
   // --- PRODUCTION OAUTH FLOW ---
   // Generate a random nonce for security (state parameter)
   const nonce = Math.random().toString(36).substring(7);
-  
+
   // Construct the Shopify authorization URL
   const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}&state=${nonce}`;
 
-  // Redirect the merchant to Shopify to grant permissions
-  return NextResponse.redirect(installUrl);
+  // Embedded apps can be loaded inside Shopify Admin's iframe. accounts.shopify.com
+  // refuses to be framed, so a normal HTTP redirect here can fail with
+  // "accounts.shopify.com refused to connect" if this response is rendered inside
+  // that iframe. Force a top-level navigation instead of a server redirect.
+  const html = `<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8" /></head>
+  <body>
+    <script>
+      if (window.top === window.self) {
+        window.location.href = ${JSON.stringify(installUrl)};
+      } else {
+        window.top.location.href = ${JSON.stringify(installUrl)};
+      }
+    </script>
+  </body>
+</html>`;
+
+  return new NextResponse(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
 }

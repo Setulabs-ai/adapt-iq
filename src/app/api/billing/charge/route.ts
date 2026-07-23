@@ -62,8 +62,26 @@ export async function GET(request: Request) {
       status: "pending"
     });
 
-    // 3. Redirect merchant to Shopify approval screen
-    return NextResponse.redirect(recurring_application_charge.confirmation_url);
+    // 3. Redirect merchant to Shopify approval screen.
+    // Shopify's charge confirmation page also refuses to be loaded inside the
+    // embedded app's iframe, so force a top-level navigation here too.
+    const confirmationUrl = recurring_application_charge.confirmation_url;
+    const html = `<!DOCTYPE html>
+<html>
+  <head><meta charset="utf-8" /></head>
+  <body>
+    <script>
+      if (window.top === window.self) {
+        window.location.href = ${JSON.stringify(confirmationUrl)};
+      } else {
+        window.top.location.href = ${JSON.stringify(confirmationUrl)};
+      }
+    </script>
+  </body>
+</html>`;
+    return new NextResponse(html, {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
 
   } catch (err: any) {
     console.error("[Shopify Billing] Error:", err.message);
